@@ -39,7 +39,7 @@ module.exports = function (dbtype, authService, settings) {
 		dataaccess.insertOne(collectionname, doc, callback)
 	};
 
-	module.checkForValidSessionCookie = function(req, res, next) {
+	module.checkForValidSessionCookie = function(req, reply, done) {
 		logger.debug('checkForValidCookie');
 		var sessionid = req.cookies.sessionid;
 		if (sessionid) {
@@ -47,74 +47,73 @@ module.exports = function (dbtype, authService, settings) {
 		}
 		if (!sessionid || sessionid == '') {
 			logger.debug('checkForValidCookie - no sessionid cookie so returning 403');
-			res.sendStatus(403);
+			reply.status(403).send('Forbidden');
 			return;
 		}
 	
 		validateSession(sessionid, function(err, customerid) {
 			if (err) {
 				logger.debug('checkForValidCookie - system error validating session so returning 500');
-				res.sendStatus(500);
+				reply.status(500).send('Internal Server Eror');
 				return;
 			}
 			
 			if (customerid) {
-				logger.debug('checkForValidCookie - good session so allowing next route handler to be called');
+				logger.debug('checkForValidCookie - good session so allowing done route handler to be called');
 				req.acmeair_login_user = customerid;
-				next();
+				done();
 				return;
 			}
 			else {
 				logger.debug('checkForValidCookie - bad session so returning 403');
-				res.sendStatus(403);
+				reply.status(403).send('Forbidden');
 				return;
 			}
 		});
 	}
 
-	module.login = function(req, res) {
+	module.login = function(req, reply) {
 		logger.debug('logging in user');
 		var login = req.body.login;
 		var password = req.body.password;
 	
-		res.cookie('sessionid', '');
+		reply.setCookie('sessionid', '');
 		
 		// replace eventually with call to business logic to validate customer
 		validateCustomer(login, password, function(err, customerValid) {
 			if (err) {
-				res.send(500,err); // TODO: do I really need this or is there a cleaner way??
+				reply.status(500).send(err); // TODO: do I really need this or is there a cleaner way??
 				return;
 			}
 			
 			if (!customerValid) {
-				res.sendStatus(403);
+				reply.status(403).send('Forbidden');
 			}
 			else {
 				createSession(login, function(error, sessionid) {
 					if (error) {
 						logger.info(error);
-						res.send(500, error);
+						res.status(500).send(error);
 						return;
 					}
-					res.cookie('sessionid', sessionid);
-					res.send('logged in');
+					reply.setCookie('sessionid', sessionid);
+					reply.send('logged in');
 				});
 			}
 		});
 	};
 
-	module.logout = function(req, res) {
+	module.logout = function(req, reply) {
 		logger.debug('logging out user');
 		
 		var sessionid = req.cookies.sessionid;
-		var login = req.body.login;
 		invalidateSession(sessionid, function(err) {
-			res.cookie('sessionid', '');
-			res.send('logged out');
+			reply.setCookie('sessionid', '');
+			reply.send('logged out');
 		});
 	};
 
-	module.queryflights = function(req, res) {
+	module.queryflights = function(req, reply) {
 		logger.debug('querying flights');
 		
 		var fromAirport = req.body.fromAirport;
@@ -154,7 +153,7 @@ module.exports = function (dbtype, authService, settings) {
 						 {"numPages":1,"flightsOptions": flightsOutbound,"currentPage":0,"hasMoreOptions":false,"pageSize":10},
 						 {"numPages":1,"flightsOptions": flightsReturn,"currentPage":0,"hasMoreOptions":false,"pageSize":10}
 						], "tripLegs":2};
-					res.send(options);
+					reply.send(options);
 				});
 			}
 			else {
@@ -162,12 +161,12 @@ module.exports = function (dbtype, authService, settings) {
 					[
 					 {"numPages":1,"flightsOptions": flightsOutbound,"currentPage":0,"hasMoreOptions":false,"pageSize":10}
 					], "tripLegs":1};
-				res.send(options);
+				reply.send(options);
 			}
 		});
 	};
 
-	module.bookflights = function(req, res) {
+	module.bookflights = function(req, reply) {
 		logger.debug('booking flights');
 		
 		var userid = req.body.userid;
@@ -181,19 +180,21 @@ module.exports = function (dbtype, authService, settings) {
 			if (!oneWay) {
 				bookFlight(retFlight, userid, function (error, retBookingId) {
 					var bookingInfo = {"oneWay":false,"returnBookingId":retBookingId,"departBookingId":toBookingId};
-					res.header('Cache-Control', 'no-cache');
-					res.send(bookingInfo);
+					reply
+						.header('Cache-Control', 'no-cache')
+						.send(bookingInfo);
 				});
 			}
 			else {
 				var bookingInfo = {"oneWay":true,"departBookingId":toBookingId};
-				res.header('Cache-Control', 'no-cache');
-				res.send(bookingInfo);
+				reply
+					.header('Cache-Control', 'no-cache')
+					.send(bookingInfo);
 			}
 		});
 	};
 
-	module.cancelBooking = function(req, res) {
+	module.cancelBooking = function(req, reply) {
 		logger.debug('canceling booking');
 		
 		var number = req.body.number;
@@ -201,44 +202,44 @@ module.exports = function (dbtype, authService, settings) {
 		
 		cancelBooking(number, userid, function (error) {
 			if (error) {
-				res.send({'status':'error'});
+				reply.send({'status':'error'});
 			}
 			else {
-				res.send({'status':'success'});
+				reply.send({'status':'success'});
 			}
 		});
 	};
 
-	module.bookingsByUser = function(req, res) {
+	module.bookingsByUser = function(req, reply) {
 		logger.debug('listing booked flights by user ' + req.params.user);
 	
 		getBookingsByUser(req.params.user, function(err, bookings) {
 			if (err) {
-				res.sendStatus(500);
+				reply.status(500).send('Internal Server Error');
 			}
-			res.send(bookings);
+			reply.send(bookings);
 		});
 	};
 
-	module.getCustomerById = function(req, res) {
+	module.getCustomerById = function(req, reply) {
 		logger.debug('getting customer by user ' + req.params.user);
 	
 		getCustomer(req.params.user, function(err, customer) {
 			if (err) {
-				res.sendStatus(500);
+				reply.status(500).send('Internal Server Error');
 			}
-			res.send(customer);
+			reply.send(customer);
 		});
 	};
 
-	module.putCustomerById = function(req, res) {
+	module.putCustomerById = function(req, reply) {
 		logger.debug('putting customer by user ' + req.params.user);
 		
 		updateCustomer(req.params.user, req.body, function(err, customer) {
 			if (err) {
-				res.sendStatus(500);
+				reply.status(500).send('Internal Server Error');
 			}
-			res.send(customer);
+			reply.send(customer);
 		});
 	};
 
@@ -248,84 +249,84 @@ module.exports = function (dbtype, authService, settings) {
 		res.send(now);
 	};
 	
-	module.getRuntimeInfo = function(req,res) {
+	module.getRuntimeInfo = function(req, reply) {
 		var runtimeInfo = [];
 		runtimeInfo.push({"name":"Runtime","description":"NodeJS"});
 		var versions = process.versions;
 		for (var key in versions) {
 			runtimeInfo.push({"name":key,"description":versions[key]});
 		}
-		res.contentType('application/json');
-		res.send(JSON.stringify(runtimeInfo));
+		// res.contentType('application/json');
+		reply.send(JSON.stringify(runtimeInfo));
 	};
 	
-	module.getDataServiceInfo = function(req,res) {
+	module.getDataServiceInfo = function(req, reply) {
 		var dataServices = [{"name":"cassandra","description":"Apache Cassandra NoSQL DB"},
 		                    {"name":"cloudant","description":"IBM Distributed DBaaS"},
 		                    {"name":"mongo","description":"MongoDB NoSQL DB"}];
-		res.send(JSON.stringify(dataServices));
+		reply.send(JSON.stringify(dataServices));
 	};
 	
-	module.getActiveDataServiceInfo = function (req,res) {
-		res.send(dbtype);
+	module.getActiveDataServiceInfo = function (req, reply) {
+		reply.send(dbtype);
 	};
 	
-	module.countBookings = function(req,res) {
-		countItems(module.dbNames.bookingName, function (error,count){
-			if (error){
-				res.send("-1");
+	module.countBookings = function(req, reply) {
+		countItems(module.dbNames.bookingName, function (error, count) {
+			if (error) {
+				reply.send("-1");
 			} else {
-				res.send(count.toString());
+				reply.send(count.toString());
 			}
 		});
 	};
 	
-	module.countCustomer = function(req,res) {
-		countItems(module.dbNames.customerName, function (error,count){
+	module.countCustomer = function(req, reply) {
+		countItems(module.dbNames.customerName, function (error, count) {
 			if (error){
-				res.send("-1");
+				reply.send("-1");
 			} else {
-				res.send(count.toString());
+				reply.send(count.toString());
 			}
 		});
 	};
 	
-	module.countCustomerSessions = function(req,res) {
-		countItems(module.dbNames.customerSessionName, function (error,count){
+	module.countCustomerSessions = function(req, reply) {
+		countItems(module.dbNames.customerSessionName, function (error, count) {
 			if (error){
-				res.send("-1");
+				reply.send("-1");
 			} else {
-				res.send(count.toString());
+				reply.send(count.toString());
 			}
 		});
 	};
 	
-	module.countFlights = function(req,res) {
-		countItems(module.dbNames.flightName, function (error,count){
-			if (error){
-				res.send("-1");
+	module.countFlights = function(req, reply) {
+		countItems(module.dbNames.flightName, function (error, count) {
+			if (error) {
+				reply.send("-1");
 			} else {
-				res.send(count.toString());
+				reply.send(count.toString());
 			}
 		});
 	};
 	
-	module.countFlightSegments = function(req,res) {
-		countItems(module.dbNames.flightSegmentName, function (error,count){
+	module.countFlightSegments = function(req, reply) {
+		countItems(module.dbNames.flightSegmentName, function (error, count) {
 			if (error){
-				res.send("-1");
+				reply.send("-1");
 			} else {
-				res.send(count.toString());
+				reply.send(count.toString());
 			}
 		});
 	};
 	
-	module.countAirports = function(req,res) {
-		countItems(module.dbNames.airportCodeMappingName, function (error,count){
-			if (error){
-				res.send("-1");
+	module.countAirports = function(req, reply) {
+		countItems(module.dbNames.airportCodeMappingName, function (error, count) {
+			if (error) {
+				reply.send("-1");
 			} else {
-				res.send(count.toString());
+				reply.send(count.toString());
 			}
 		});
 	};

@@ -14,11 +14,13 @@
 * limitations under the License.
 *******************************************************************************/
 
-var express = require('express')
-  , http = require('http')
+var Fastify = require('fastify')
   , fs = require('fs')
-  , log4js = require('log4js');
+  , log4js = require('log4js')
+  , path = require('path');
 var settings = JSON.parse(fs.readFileSync('settings.json', 'utf8'));
+
+
 
 var logger = log4js.getLogger('app');
 logger.setLevel(settings.loggerLevel);
@@ -62,64 +64,83 @@ if(process.env.VCAP_SERVICES){
 }
 logger.info("db type=="+dbtype);
 
-var routes = new require('./routes/index.js')(dbtype, authService,settings);
+var routes = new require('./routes/index.js')(dbtype, authService, settings);
 var loader = new require('./loader/loader.js')(routes, settings);
+
+// Setup fastify 
+var fastify = Fastify({ logger: settings.useDevLogger ? true : false }) // log every request to the console in development
+
+fastify.register(require('fastify-static'), {
+  root: path.join(__dirname, 'public') // set the static files location /public/img will be /img for users
+});
+
+fastify.register(require('fastify-cookie'))
+fastify.register(require('fastify-formbody'))
 
 // Setup express with 4.0.0
 
-var app = express();
-var morgan         = require('morgan');
-var bodyParser     = require('body-parser');
-var methodOverride = require('method-override');
-var cookieParser = require('cookie-parser')
+// var app = express();
+// var morgan         = require('morgan');
+// var bodyParser     = require('body-parser');
+// var methodOverride = require('method-override');
+// var cookieParser = require('cookie-parser')
 
-app.use(express.static(__dirname + '/public'));     	// set the static files location /public/img will be /img for users
-if (settings.useDevLogger)
-	app.use(morgan('dev'));                     		// log every request to the console
+// app.use(express.static(__dirname + '/public'));     	// set the static files location /public/img will be /img for users
+// if (settings.useDevLogger)
+// 	app.use(morgan('dev'));                     		// log every request to the console
 
-//create application/json parser
-var jsonParser = bodyParser.json();
-// create application/x-www-form-urlencoded parser
-var urlencodedParser = bodyParser.urlencoded({ extended: false });
+// //create application/json parser
+// var jsonParser = bodyParser.json();
+// // create application/x-www-form-urlencoded parser
+// var urlencodedParser = bodyParser.urlencoded({ extended: false });
 
-app.use(jsonParser);
-app.use(urlencodedParser);
-//parse an HTML body into a string
-app.use(bodyParser.text({ type: 'text/html' }));
+// app.use(jsonParser);
+// app.use(urlencodedParser);
+// //parse an HTML body into a string
+// app.use(bodyParser.text({ type: 'text/html' }));
 
-app.use(methodOverride());                  			// simulate DELETE and PUT
-app.use(cookieParser());                  				// parse cookie
+// app.use(methodOverride());                  			// simulate DELETE and PUT
+// app.use(cookieParser());                  				// parse cookie
 
-var router = express.Router(); 		
+// var router = express.Router(); 		
 
-router.post('/login', login);
-router.get('/login/logout', logout);
-router.post('/flights/queryflights', routes.checkForValidSessionCookie, routes.queryflights);
-router.post('/bookings/bookflights', routes.checkForValidSessionCookie, routes.bookflights);
-router.post('/bookings/cancelbooking', routes.checkForValidSessionCookie, routes.cancelBooking);
-router.get('/bookings/byuser/:user', routes.checkForValidSessionCookie, routes.bookingsByUser);
-router.get('/customer/byid/:user', routes.checkForValidSessionCookie, routes.getCustomerById);
-router.post('/customer/byid/:user', routes.checkForValidSessionCookie, routes.putCustomerById);
-router.get('/config/runtime', routes.getRuntimeInfo);
-router.get('/config/dataServices', routes.getDataServiceInfo);
-router.get('/config/activeDataService', routes.getActiveDataServiceInfo);
-router.get('/config/countBookings', routes.countBookings);
-router.get('/config/countCustomers', routes.countCustomer);
-router.get('/config/countSessions', routes.countCustomerSessions);
-router.get('/config/countFlights', routes.countFlights);
-router.get('/config/countFlightSegments', routes.countFlightSegments);
-router.get('/config/countAirports' , routes.countAirports);
-//router.get('/loaddb', startLoadDatabase);
-router.get('/loader/load', startLoadDatabase);
-router.get('/loader/query', loader.getNumConfiguredCustomers);
-router.get('/checkstatus', checkStatus);
+function router (fastify, opts, next) {
+	fastify.post('/login', {}, login); // @todo this doesn't work yet
+	fastify.get('/login/logout', {}, logout);
+	fastify.post('/flights/queryflights', { beforeHandler: routes.checkForValidSessionCookie }, routes.queryflights);
+	fastify.post('/bookings/bookflights', { beforeHandler: routes.checkForValidSessionCookie }, routes.bookflights);
+	fastify.post('/bookings/cancelbooking', { beforeHandler: routes.checkForValidSessionCookie }, routes.cancelBooking);
+	fastify.get('/bookings/byuser/:user', { beforeHandler: routes.checkForValidSessionCookie }, routes.bookingsByUser);
+	fastify.get('/customer/byid/:user', { beforeHandler: routes.checkForValidSessionCookie }, routes.getCustomerById);
+	fastify.post('/customer/byid/:user', { beforeHandler: routes.checkForValidSessionCookie }, routes.putCustomerById);
+	fastify.get('/config/runtime', {}, routes.getRuntimeInfo);
+	fastify.get('/config/dataServices', {}, routes.getDataServiceInfo);
+	fastify.get('/config/activeDataService', {}, routes.getActiveDataServiceInfo);
+	fastify.get('/config/countBookings', {}, routes.countBookings);
+	fastify.get('/config/countCustomers', {}, routes.countCustomer);
+	fastify.get('/config/countSessions', {}, routes.countCustomerSessions);
+	fastify.get('/config/countFlights', {}, routes.countFlights);
+	fastify.get('/config/countFlightSegments', {}, routes.countFlightSegments);
+	fastify.get('/config/countAirports', {}, routes.countAirports);
+	// fastify.get('/loaddb', startLoadDatabase);
+	fastify.get('/loader/load', {}, startLoadDatabase);
+	fastify.get('/loader/query', {}, loader.getNumConfiguredCustomers);
+	fastify.get('/checkstatus', {}, checkStatus);
+
+	next()
+}
 
 if (authService && authService.hystrixStream)
-	app.get('/rest/api/hystrix.stream', authService.hystrixStream);
+	fastify.get('/rest/api/hystrix.stream', authService.hystrixStream);
 
 
-//REGISTER OUR ROUTES so that all of routes will have prefix 
-app.use(settings.contextRoot, router);
+// //REGISTER OUR ROUTES so that all of routes will have prefix 
+// app.use(settings.contextRoot, router);
+fastify.register(router, {
+	prefix: settings.contextRoot
+})
+
+
 
 // Only initialize DB after initialization of the authService is done
 var initialized = false;
@@ -135,60 +156,67 @@ else
 	initDB();
 
 
-function checkStatus(req, res){
-	res.sendStatus(200);
+function checkStatus(req, reply) {
+	reply.send('OK');
 }
 
-function login(req, res){
+function login(req, reply) {
+	if (!initialized) {
+		logger.info("please wait for db connection initialized then trigger again.");
+		initDB();
+		reply.status(403).send('Forbidden');
+	} else {
+		routes.login(req, reply);
+	}
+}
+
+function logout(req, reply){
 	if (!initialized)
      {
 		logger.info("please wait for db connection initialized then trigger again.");
 		initDB();
-		res.sendStatus(403);
+		reply.status(400).send('Bad request');
 	}else
-		routes.login(req, res);
-}
-
-function logout(req, res){
-	if (!initialized)
-     {
-		logger.info("please wait for db connection initialized then trigger again.");
-		initDB();
-		res.sendStatus(400);
-	}else
-		routes.logout(req, res);
+		routes.logout(req, reply);
 }
 
 
-function startLoadDatabase(req, res){
+function startLoadDatabase(req, reply){
 	if (!initialized)
      	{
 		logger.info("please wait for db connection initialized then trigger again.");
 		initDB();
-		res.sendStatus(400);
+		reply.status(400).send('Bad request');
 	}else
-		loader.startLoadDatabase(req, res);
+		loader.startLoadDatabase(req, reply);
 }
 
 function initDB(){
-    if (initialized ) return;
-		routes.initializeDatabaseConnections(function(error) {
-	if (error) {
-		logger.info('Error connecting to database - exiting process: '+ error);
-		// Do not stop the process for debug in container service
-		//process.exit(1); 
-	}else
-	      initialized =true;
+	if (initialized ) return;
+	routes.initializeDatabaseConnections(function(error) {
+		if (error) {
+			logger.info('Error connecting to database - exiting process: '+ error);
+			// Do not stop the process for debug in container service
+			//process.exit(1); 
+		} else {
+			initialized =true;
+		}
 
-	logger.info("Initialized database connections");
-	startServer();
+		logger.info("Initialized database connections");
+		startServer();
 	});
 }
 
 
 function startServer() {
-	if (serverStarted ) return;
-	serverStarted = true;
-	app.listen(port);   
-	logger.info("Express server listening on port " + port);
+	// come back to this
+	// if (serverStarted) return;
+	// serverStarted = true;
+	fastify.listen(port, function (err) {
+    if (err) {
+      logger.error("Error starting server " + err);
+      process.exit(1)
+    }
+  });   
+	logger.info("Fastify server listening on port " + port);
 }

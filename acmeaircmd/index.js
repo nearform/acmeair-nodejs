@@ -19,8 +19,8 @@ module.exports = function (authService,settings) {
 	var hystrix = require('../netflix/hystrix/index.js');
 	var command = require('../netflix/hystrix/command.js');
 
-	module.hystrixStream = function(request, response){
-		hystrix.hystrixStream(request, response);
+	module.hystrixStream = function(request, reply){
+		hystrix.hystrixStream(request, reply);
 	}
 
 	module.createSession = function(userid, callback /* (error, sessionId) */){
