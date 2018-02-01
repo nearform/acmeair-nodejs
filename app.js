@@ -155,9 +155,8 @@ if (authService && authService.initialize)
 else
 	initDB();
 
-
 function checkStatus(req, reply) {
-	reply.send('OK');
+	reply.send("OK");
 }
 
 function login(req, reply) {
