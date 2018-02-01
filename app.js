@@ -20,8 +20,6 @@ var Fastify = require('fastify')
   , path = require('path');
 var settings = JSON.parse(fs.readFileSync('settings.json', 'utf8'));
 
-
-
 var logger = log4js.getLogger('app');
 logger.setLevel(settings.loggerLevel);
 
@@ -33,7 +31,7 @@ logger.info("host:port=="+host+":"+port);
 
 var authService;
 var authServiceLocation = process.env.AUTH_SERVICE;
-if (authServiceLocation) 
+if (authServiceLocation)
 {
 	logger.info("Use authservice:"+authServiceLocation);
 	var authModule;
@@ -41,7 +39,7 @@ if (authServiceLocation)
 		authModule = "acmeairhttp";
 	else
 		authModule= authServiceLocation;
-	
+
 	authService = new require('./'+authModule+'/index.js')(settings);
 	if (authService && "true"==process.env.enableHystrix) // wrap into command pattern
 	{
@@ -67,7 +65,7 @@ logger.info("db type=="+dbtype);
 var routes = new require('./routes/index.js')(dbtype, authService, settings);
 var loader = new require('./loader/loader.js')(routes, settings);
 
-// Setup fastify 
+// Setup fastify
 var fastify = Fastify({ logger: settings.useDevLogger ? true : false }) // log every request to the console in development
 
 fastify.register(require('fastify-static'), {
@@ -76,33 +74,6 @@ fastify.register(require('fastify-static'), {
 
 fastify.register(require('fastify-cookie'))
 fastify.register(require('fastify-formbody'))
-
-// Setup express with 4.0.0
-
-// var app = express();
-// var morgan         = require('morgan');
-// var bodyParser     = require('body-parser');
-// var methodOverride = require('method-override');
-// var cookieParser = require('cookie-parser')
-
-// app.use(express.static(__dirname + '/public'));     	// set the static files location /public/img will be /img for users
-// if (settings.useDevLogger)
-// 	app.use(morgan('dev'));                     		// log every request to the console
-
-// //create application/json parser
-// var jsonParser = bodyParser.json();
-// // create application/x-www-form-urlencoded parser
-// var urlencodedParser = bodyParser.urlencoded({ extended: false });
-
-// app.use(jsonParser);
-// app.use(urlencodedParser);
-// //parse an HTML body into a string
-// app.use(bodyParser.text({ type: 'text/html' }));
-
-// app.use(methodOverride());                  			// simulate DELETE and PUT
-// app.use(cookieParser());                  				// parse cookie
-
-// var router = express.Router(); 		
 
 function router (fastify, opts, next) {
 	fastify.post('/login', {}, login); // @todo this doesn't work yet
@@ -134,12 +105,10 @@ if (authService && authService.hystrixStream)
 	fastify.get('/rest/api/hystrix.stream', authService.hystrixStream);
 
 
-// //REGISTER OUR ROUTES so that all of routes will have prefix 
-// app.use(settings.contextRoot, router);
+// REGISTER OUR ROUTES so that all of routes will have prefix
 fastify.register(router, {
 	prefix: settings.contextRoot
 })
-
 
 
 // Only initialize DB after initialization of the authService is done
@@ -163,7 +132,7 @@ function login(req, reply) {
 	if (!initialized) {
 		logger.info("please wait for db connection initialized then trigger again.");
 		initDB();
-		reply.status(403).send('Forbidden');
+		reply.code(403).send('Forbidden');
 	} else {
 		routes.login(req, reply);
 	}
@@ -174,7 +143,7 @@ function logout(req, reply){
      {
 		logger.info("please wait for db connection initialized then trigger again.");
 		initDB();
-		reply.status(400).send('Bad request');
+		reply.code(400).send('Bad request');
 	}else
 		routes.logout(req, reply);
 }
@@ -185,7 +154,7 @@ function startLoadDatabase(req, reply){
      	{
 		logger.info("please wait for db connection initialized then trigger again.");
 		initDB();
-		reply.status(400).send('Bad request');
+		reply.code(400).send('Bad request');
 	}else
 		loader.startLoadDatabase(req, reply);
 }
@@ -196,7 +165,7 @@ function initDB(){
 		if (error) {
 			logger.info('Error connecting to database - exiting process: '+ error);
 			// Do not stop the process for debug in container service
-			//process.exit(1); 
+			//process.exit(1);
 		} else {
 			initialized =true;
 		}
@@ -208,14 +177,13 @@ function initDB(){
 
 
 function startServer() {
-	// come back to this
-	// if (serverStarted) return;
-	// serverStarted = true;
+	if (serverStarted) return;
+	serverStarted = true;
 	fastify.listen(port, function (err) {
     if (err) {
       logger.error("Error starting server " + err);
       process.exit(1)
     }
-  });   
+  });
 	logger.info("Fastify server listening on port " + port);
 }

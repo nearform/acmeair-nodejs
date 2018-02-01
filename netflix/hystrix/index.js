@@ -14,21 +14,23 @@ exports.hystrixStream = function(request, reply) {
 	
 	if (!hystrixMetricsStreamHandlerFactory)
 	{
-		reply.status(503).send({error:"hystrixMetricsStreamHandlerFactory not defined."});
+		reply.code(503).send({error:"hystrixMetricsStreamHandlerFactory not defined."});
 		return;
 	}
 
 	console.log('setup hystrix stream with:' +refreshInterval +" ms");
 	
 	hystrixMetricsStreamHandlerFactory.getHystrixMetricsStreamHandler(refreshInterval, function(error, instance){
-		if (!instance ) { 
+		console.log('getHystrixMetricsStreamHandler')
+
+		if (!instance) { 
 			console.log("Can not get instance");
-			reply.status(503).send({error: 'Can not get instance'});
+			reply.code(503).send({error: 'Can not get instance'});
 		} else if (error) { 
 			console.log("Get instance hit error:"+error);
-			reply.status(503).send({error: error});
+			reply.code(503).send({error: error});
 		} else {
-			//End is never called now. Where else I can shutdown the instances which will the connection count???
+			// End is never called now. Where else I can shutdown the instances which will the connection count???
 			request.on('end', function() {
 				console.log('receive request end');
 				instance.shutdown(function(){      }) 
@@ -37,6 +39,7 @@ exports.hystrixStream = function(request, reply) {
 			reply.header("Content-Type", "text/event-stream;charset=UTF-8");
 			reply.header("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate");
 			reply.header("Pragma", "no-cache");
+			
 			var stream = new Stream;
 			stream.readable = true;
 
@@ -44,7 +47,7 @@ exports.hystrixStream = function(request, reply) {
 				instance.getJsonMessageAsString(function(err, jsonMessageStr) {
 					if (err) {
 						console.log("error:"+err);
-						reply.status(503).send({error: err});
+						reply.code(503).send({error: err});
 					} else {
 						if (jsonMessageStr.length==0) {
 							stream.emit("data", "ping: \n")
@@ -54,9 +57,9 @@ exports.hystrixStream = function(request, reply) {
 						// NodeJS http does not have a flushBuffer function
 					}
 				});
-
-				reply.send(stream)
 			}, refreshInterval)
+
+			reply.send(stream)
 		}
 	})
 }

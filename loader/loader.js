@@ -154,7 +154,7 @@ module.exports = function (loadUtil,settings) {
 	}
 	
 	module.getNumConfiguredCustomers = function (req, reply) {
-		res
+		reply
 			.type("text/plain")
 			.send(loaderSettings.MAX_CUSTOMERS.toString());
 	}

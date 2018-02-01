@@ -15,7 +15,7 @@
 *******************************************************************************/
 
 module.exports = function (dbtype, authService, settings) {
-    var module = {};
+	var module = {};
 	var uuid = require('node-uuid');
 	var log4js = require('log4js');
 	var flightCache = require('ttl-lru-cache')({maxLength:settings.flightDataCacheMaxSize});
@@ -47,14 +47,14 @@ module.exports = function (dbtype, authService, settings) {
 		}
 		if (!sessionid || sessionid == '') {
 			logger.debug('checkForValidCookie - no sessionid cookie so returning 403');
-			reply.status(403).send('Forbidden');
+			reply.code(403).send('Forbidden');
 			return;
 		}
 	
 		validateSession(sessionid, function(err, customerid) {
 			if (err) {
 				logger.debug('checkForValidCookie - system error validating session so returning 500');
-				reply.status(500).send('Internal Server Eror');
+				reply.code(500).send('Internal Server Eror');
 				return;
 			}
 			
@@ -66,7 +66,7 @@ module.exports = function (dbtype, authService, settings) {
 			}
 			else {
 				logger.debug('checkForValidCookie - bad session so returning 403');
-				reply.status(403).send('Forbidden');
+				reply.code(403).send('Forbidden');
 				return;
 			}
 		});
@@ -82,18 +82,18 @@ module.exports = function (dbtype, authService, settings) {
 		// replace eventually with call to business logic to validate customer
 		validateCustomer(login, password, function(err, customerValid) {
 			if (err) {
-				reply.status(500).send(err); // TODO: do I really need this or is there a cleaner way??
+				reply.code(500).send(err); // TODO: do I really need this or is there a cleaner way??
 				return;
 			}
 			
 			if (!customerValid) {
-				reply.status(403).send('Forbidden');
+				reply.code(403).send('Forbidden');
 			}
 			else {
 				createSession(login, function(error, sessionid) {
 					if (error) {
 						logger.info(error);
-						res.status(500).send(error);
+						reply.code(500).send(error);
 						return;
 					}
 					reply.setCookie('sessionid', sessionid);
@@ -215,7 +215,7 @@ module.exports = function (dbtype, authService, settings) {
 	
 		getBookingsByUser(req.params.user, function(err, bookings) {
 			if (err) {
-				reply.status(500).send('Internal Server Error');
+				reply.code(500).send('Internal Server Error');
 			}
 			reply.send(bookings);
 		});
@@ -226,7 +226,7 @@ module.exports = function (dbtype, authService, settings) {
 	
 		getCustomer(req.params.user, function(err, customer) {
 			if (err) {
-				reply.status(500).send('Internal Server Error');
+				reply.code(500).send('Internal Server Error');
 			}
 			reply.send(customer);
 		});
@@ -237,16 +237,16 @@ module.exports = function (dbtype, authService, settings) {
 		
 		updateCustomer(req.params.user, req.body, function(err, customer) {
 			if (err) {
-				reply.status(500).send('Internal Server Error');
+				reply.code(500).send('Internal Server Error');
 			}
 			reply.send(customer);
 		});
 	};
 
-	module.toGMTString  = function(req, res) {
+	module.toGMTString  = function(req, reply) {
 		logger.info('******* running eyecatcher function');
 		var now = new Date().toGMTString();
-		res.send(now);
+		reply.send(now);
 	};
 	
 	module.getRuntimeInfo = function(req, reply) {
@@ -344,15 +344,15 @@ module.exports = function (dbtype, authService, settings) {
 
 	function validateCustomer(username, password, callback /* (error, boolean validCustomer) */) {
 		dataaccess.findOne(module.dbNames.customerName, username, function(error, customer){
-				if (error) callback (error, null);
-				else{
-	                if (customer)
-	                {
-	                	callback(null, customer.password == password);
-	                }
-	                else
-	                	callback(null, false)
+			if (error) {
+				callback (error, null);
+			} else {
+				if (customer) {
+					callback(null, customer.password == password);
+				} else {
+					callback(null, false)
 				}
+			}
 		});
 	};
 

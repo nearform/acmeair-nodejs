@@ -15,6 +15,7 @@
 *******************************************************************************/
 
 var fs = require('fs');
+var Fastify = require('fastify');
 var settings = JSON.parse(fs.readFileSync('settings.json', 'utf8'));
 var log4js = require('log4js');
 var logger = log4js.getLogger('authservice_app');
@@ -42,22 +43,21 @@ logger.info("db type=="+dbtype);
 var routes = new require('./authservice/routes/index.js')(dbtype,settings); 
 
 // call the packages we need
-var express    = require('express'); 		
-var app        = express(); 				
-var morgan         = require('morgan');
+var fastify = Fastify({ logger: settings.useDevLogger ? true : false }) // log every request to the console in development
 
-if (settings.useDevLogger)
-	app.use(morgan('dev'));                     		// log every request to the console
+function router (fastify, opts, next) {
+	fastify.post('/byuserid/:user', {}, createToken);
+	fastify.get('/:tokenid', {}, validateToken);
+	fastify.get('/status', {}, checkStatus);
+	fastify.delete('/:tokenid', {}, invalidateToken);
 
-var router = express.Router(); 		
-
-router.post('/byuserid/:user', createToken);
-router.get('/:tokenid', validateToken);
-router.get('/status', checkStatus);
-router.delete('/:tokenid', invalidateToken);
+	next();
+}
 
 // REGISTER OUR ROUTES so that all of routes will have prefix 
-app.use(settings.authContextRoot+'/authtoken', router);
+fastify.register(router, {
+	prefix: settings.contextRoot
+})
 
 var initialized = false;
 var serverStarted = false;
@@ -82,71 +82,69 @@ function initDB(){
 
 
 function startServer() {
-	if (serverStarted ) return;
+	if (serverStarted) return;
 	serverStarted = true;
-	app.listen(port);
+	fastify.listen(port, function (err) {
+    if (err) {
+      logger.error("Error starting server " + err);
+      process.exit(1)
+    }
+  }); 
 	console.log('Application started port ' + port);
 }
 
-function checkStatus(req, res){
-	res.sendStatus(200);
+function checkStatus(req, reply){
+	reply.send("OK");
 }
 
-function createToken(req, res){
+function createToken(req, reply){
 	logger.debug('create token by user ' + req.params.user);
-	if (!initialized)
-    {
+	if (!initialized) {
 		logger.info("please wait for db connection initialized then trigger again.");
 		initDB();
-		res.send(403);
-	}else
-	{
-		routes.createSessionInDB(req.params.user, function(error, cs){
-		if (error){
-		 	res.status(404).send(error);
-		}
-		else{
-			res.send(JSON.stringify(cs));
-		}
-	    })
+		reply.code(403).send("Forbidden");
+	} else {
+		routes.createSessionInDB(req.params.user, function(error, cs) {
+			if (error) {
+				reply.code(404).send(error);
+			} else {
+				reply.send(JSON.stringify(cs));
+			}
+		})
 	}
 }
 
 function validateToken(req, res){
 	logger.debug('validate token ' + req.params.tokenid);
-	if (!initialized)
-    {
+	if (!initialized) {
 		logger.info("please wait for db connection initialized then trigger again.");
 		initDB();
-		res.send(403);
-	}else
-	{
+		reply.code(403).send("Forbidden");
+	} else {
 		routes.validateSessionInDB(req.params.tokenid, function(error, cs){
-	     if (error){
-		 	res.status(404).send(error);
-		}
-		else{
-			 res.send(JSON.stringify(cs));
-		}
-	    })
+			if (error) {
+				reply.code(404).send(error);
+			} else {
+				reply.send(JSON.stringify(cs));
+			}
+		})
 	}
 }
 
-function invalidateToken(req, res){
+function invalidateToken(req, reply){
 	logger.debug('invalidate token ' + req.params.tokenid);
-	if (!initialized)
-    {
+	if (!initialized) {
 		logger.info("please wait for db connection initialized then trigger again.");
 		initDB();
-		res.send(403);
-	}else
-	{
-		routes.invalidateSessionInDB(req.params.tokenid, function(error){
-		if (error){
-		 	res.status(404).send(error);
-		}
-		else res.sendStatus(200);
-	    })
+		reply.code(403).send("Forbidden");
+	} else {
+		routes.invalidateSessionInDB(req.params.tokenid, function(error) {
+			if (error) {
+				reply.code(404).send(error);
+			} else {
+				reply.sendStatus(200);
+			}
+		})
 	}
 }
 
