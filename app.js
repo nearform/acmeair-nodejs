@@ -64,6 +64,7 @@ logger.info("db type=="+dbtype);
 
 var routes = new require('./routes/index.js')(dbtype, authService, settings);
 var loader = new require('./loader/loader.js')(routes, settings);
+var schema = require('./routes/schema.js');
 
 // Setup fastify
 var fastify = Fastify({ logger: settings.useDevLogger ? true : false }) // log every request to the console in development
@@ -76,14 +77,14 @@ fastify.register(require('fastify-cookie'))
 fastify.register(require('fastify-formbody'))
 
 function router (fastify, opts, next) {
-	fastify.post('/login', {}, login); // @todo this doesn't work yet
-	fastify.get('/login/logout', {}, logout);
-	fastify.post('/flights/queryflights', { beforeHandler: routes.checkForValidSessionCookie }, routes.queryflights);
-	fastify.post('/bookings/bookflights', { beforeHandler: routes.checkForValidSessionCookie }, routes.bookflights);
-	fastify.post('/bookings/cancelbooking', { beforeHandler: routes.checkForValidSessionCookie }, routes.cancelBooking);
-	fastify.get('/bookings/byuser/:user', { beforeHandler: routes.checkForValidSessionCookie }, routes.bookingsByUser);
-	fastify.get('/customer/byid/:user', { beforeHandler: routes.checkForValidSessionCookie }, routes.getCustomerById);
-	fastify.post('/customer/byid/:user', { beforeHandler: routes.checkForValidSessionCookie }, routes.putCustomerById);
+	fastify.post('/login', { schema: schema.login }, login);
+	fastify.get('/login/logout', { schema: schema.logout }, logout);
+	fastify.post('/flights/queryflights', { schema: schema.queryFlights, beforeHandler: routes.checkForValidSessionCookie }, routes.queryflights);
+	fastify.post('/bookings/bookflights', { schema: schema.bookFlights, beforeHandler: routes.checkForValidSessionCookie }, routes.bookflights);
+	fastify.post('/bookings/cancelbooking', { schema: schema.cancelBooking, beforeHandler: routes.checkForValidSessionCookie }, routes.cancelBooking);
+	fastify.get('/bookings/byuser/:user', { schema: schema.bookingsByUser, beforeHandler: routes.checkForValidSessionCookie }, routes.bookingsByUser);
+	fastify.get('/customer/byid/:user', { schema: schema.getCustomerById, beforeHandler: routes.checkForValidSessionCookie }, routes.getCustomerById);
+	fastify.post('/customer/byid/:user', { schema: schema.putCustomerById, beforeHandler: routes.checkForValidSessionCookie }, routes.putCustomerById);
 	fastify.get('/config/runtime', {}, routes.getRuntimeInfo);
 	fastify.get('/config/dataServices', {}, routes.getDataServiceInfo);
 	fastify.get('/config/activeDataService', {}, routes.getActiveDataServiceInfo);

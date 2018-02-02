@@ -42,21 +42,51 @@ logger.info("db type=="+dbtype);
 
 var routes = new require('./authservice/routes/index.js')(dbtype,settings); 
 
+var schema = {
+	createToken: {
+		params: {
+			type: 'object',
+			required: ['user'],
+			properties: {
+				user: { type: 'string' }
+			}
+		}
+	},
+	validateToken: {
+		params: {
+			type: 'object',
+			required: ['tokenid'],
+			properties: {
+				tokenid: { type: 'string' }
+			}
+		}
+	},
+	invalidateToken: {
+		params: {
+			type: 'object',
+			required: ['tokenid'],
+			properties: {
+				tokenid: { type: 'string' }
+			}
+		}
+	}
+};
+
 // call the packages we need
 var fastify = Fastify({ logger: settings.useDevLogger ? true : false }) // log every request to the console in development
 
 function router (fastify, opts, next) {
-	fastify.post('/byuserid/:user', {}, createToken);
-	fastify.get('/:tokenid', {}, validateToken);
+	fastify.post('/byuserid/:user', {  }, createToken);
+	fastify.get('/:tokenid', { schema: schema.validateToken }, validateToken);
 	fastify.get('/status', {}, checkStatus);
-	fastify.delete('/:tokenid', {}, invalidateToken);
+	fastify.delete('/:tokenid', { schema: schema.invalidateToken }, invalidateToken);
 
 	next();
 }
 
 // REGISTER OUR ROUTES so that all of routes will have prefix 
 fastify.register(router, {
-	prefix: settings.contextRoot
+	prefix: settings.authContextRoot + '/authtoken'
 })
 
 var initialized = false;
@@ -99,6 +129,7 @@ function checkStatus(req, reply){
 
 function createToken(req, reply){
 	logger.debug('create token by user ' + req.params.user);
+
 	if (!initialized) {
 		logger.info("please wait for db connection initialized then trigger again.");
 		initDB();
@@ -142,7 +173,7 @@ function invalidateToken(req, reply){
 			if (error) {
 				reply.code(404).send(error);
 			} else {
-				reply.sendStatus(200);
+				reply.code(200).send('OK');
 			}
 		})
 	}
