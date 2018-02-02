@@ -127,12 +127,11 @@ module.exports = function (loadUtil,settings) {
 		});
 	}
 
-	module.startLoadDatabase = function startLoadDatabase(req, res) {
-		if (customers.length>=1)
-	      {
-			res.send('Already loaded');
+	module.startLoadDatabase = function startLoadDatabase(req, reply) {
+		if (customers.length>=1) {
+			reply.send('Already loaded');
 			return;
-	      }
+		}
 		var numCustomers = req.query.numCustomers;
 		if(numCustomers === undefined) {
 			numCustomers = loaderSettings.MAX_CUSTOMERS;
@@ -147,16 +146,17 @@ module.exports = function (loadUtil,settings) {
 				flightQueue.drain = function() {
 					logger.info('all flights loaded');
 					logger.info('ending loading database');
-					res.send('Database Finished Loading');
+					reply.send('Database Finished Loading');
 				};
 				customerQueue.push(customers);
 			});
 		//res.send('Trigger DB loading');
 	}
 	
-	module.getNumConfiguredCustomers = function (req, res) {
-		res.contentType("text/plain");
-		res.send(loaderSettings.MAX_CUSTOMERS.toString());
+	module.getNumConfiguredCustomers = function (req, reply) {
+		reply
+			.type("text/plain")
+			.send(loaderSettings.MAX_CUSTOMERS.toString());
 	}
 
 
