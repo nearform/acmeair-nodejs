@@ -23,14 +23,14 @@
 // 		findBy(collname, condition as json of field and value,function(err, docs))
 //		count(collname, condition as json of field and value, function(error, count))
 
-module.exports = function (settings) {
+module.exports = function (dbclient) {
     var module = {};
 
-	var mongodb = require('mongodb');
+//	var mongodb = require('mongodb');
 	var log4js = require('log4js');
 	
 	var logger = log4js.getLogger('dataaccess/mongo');
-	logger.setLevel(settings.loggerLevel);
+//	logger.setLevel(settings.loggerLevel);
 
 	module.dbNames = {
 		customerName: "customer",
@@ -39,100 +39,6 @@ module.exports = function (settings) {
 		bookingName:"booking",
 		customerSessionName:"customerSession",
 		airportCodeMappingName:"airportCodeMapping"
-	}
-
-	var dbclient = null;
-
-	module.initializeDatabaseConnections = function(callback/*(error)*/) {
-	    var mongo = null;
-		var mongoURI = null;
-		if(process.env.VCAP_SERVICES){
-			  var env = JSON.parse(process.env.VCAP_SERVICES);
-	             logger.info("env: %j",env);
-			  var serviceKey = Object.keys(env)[0];
-			  if (serviceKey)
-	          {
-				  mongo = env[serviceKey][0]['credentials'];                 
-	     		  logger.info("mongo: %j",mongo);
-			  }
-		}
-
-		// The section is for docker integration using link
-		if (mongo ==null && process.env.MONGO_PORT!=null) {
-	        logger.info(process.env.MONGO_PORT);
-	        logger.info(process.env.MONGO_PORT_27017_TCP_ADDR);
-	        logger.info(process.env.MONGO_PORT_27017_TCP_PORT);
-		    mongo = {
-			    "hostname":  process.env.MONGO_PORT_27017_TCP_ADDR,
-			    "port": process.env.MONGO_PORT_27017_TCP_PORT,
-			    "username":"",
-			    "password":"",
-			    "name":"",
-			    "db":"acmeair"
-		    }
-		}
-		// Default to read from settings file
-		if (mongo==null) {
-		    mongo = {
-		    "hostname": settings.mongoHost,
-		    "port": settings.mongoPort,
-		    "username":"",
-		    "password":"",
-		    "name":"",
-		    "db":"acmeair"
-		 }
-		}
-		
-		var generate_mongo_url = function(obj){
-			if (process.env.MONGO_URL)
-			{
-			  logger.info("mongo: %j",process.env.MONGO_URL);
-			  return process.env.MONGO_URL;
-			}
-	        if (obj['uri']!=null)
-	        {
-	        	return obj.uri;
-	        }
-	        if (obj['url']!=null)
-	        {
-	        	return obj.url;
-	        }
-			obj.hostname = (obj.hostname || 'localhost');
-			obj.port = (obj.port || 27017);
-			obj.db = (obj.db || 'acmeair');
-
-			if(obj.username && obj.password){
-				return "mongodb://" + obj.username + ":" + obj.password + "@" + obj.hostname + ":" + obj.port + "/" + obj.db;
-			}
-			else{
-		        return "mongodb://" + obj.hostname + ":" + obj.port + "/" + obj.db;
-	  	 	}
-		}
-
-		var mongourl = generate_mongo_url(mongo);
-		
-		var c_opt = {server:{auto_reconnect:true,poolSize: settings.mongoConnectionPoolSize}};
-	    mongodb.connect(mongourl, c_opt, function(err, conn){
-	             if (err){
-	                callback(err);
-	             }else {
-	             dbclient=conn;
-	             // Add ensureIndex here
-	             dbclient.ensureIndex(module.dbNames.bookingName, {customerId:1}
-	             , {background:true}, function(err, indexName) {
-	            	 logger.info("ensureIndex:"+err+":"+indexName);
-	             });
-	             dbclient.ensureIndex(module.dbNames.flightName, {flightSegmentId:1,scheduledDepartureTime:2}
-	             , {background:true}, function(err, indexName) {
-	            	 logger.info("ensureIndex:"+err+":"+indexName);
-	             });
-	             dbclient.ensureIndex(module.dbNames.flightSegmentName, {originPort:1,destPort:2}
-	             , {background:true}, function(err, indexName) {
-	            	 logger.info("ensureIndex:"+err+":"+indexName);
-	             });
-	             callback(null);
-	             }
-	        });
 	}
 
 	module.insertOne = function (collectionname, doc, callback /* (error, insertedDocument) */) {
@@ -146,7 +52,6 @@ module.exports = function (settings) {
 			  }
 			});
 	};
-
 
 	module.findOne = function(collectionname, key, callback /* (error, doc) */) {
 		dbclient.collection(collectionname, function(error, collection){
@@ -231,6 +136,4 @@ module.exports = function (settings) {
 	};
 	
 	return module;
-
 }
-

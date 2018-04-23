@@ -14,7 +14,7 @@
 * limitations under the License.
 *******************************************************************************/
 
-module.exports = function (loadUtil,settings) {
+module.exports = function (loadUtil, settings) {
     var module = {};
     
 	var csv = require('csv');
@@ -114,6 +114,7 @@ module.exports = function (loadUtil,settings) {
 	}
 	
 	function insertFlightSegment(flightSegment, callback) {
+		logger.debug('segment to insert = ' + JSON.stringify(flightSegment));
 		loadUtil.insertOne(loadUtil.dbNames.flightSegmentName, flightSegment, function(error, flightSegmentInserted) {
 			logger.debug('flightSegment inserted = ' + JSON.stringify(flightSegmentInserted));
 			callback();
@@ -128,6 +129,7 @@ module.exports = function (loadUtil,settings) {
 	}
 
 	module.startLoadDatabase = function startLoadDatabase(req, reply) {
+		console.log('customers:', customers)
 		if (customers.length>=1) {
 			reply.send('Already loaded');
 			return;

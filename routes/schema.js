@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = {
   login: {
     body: {
@@ -7,6 +9,7 @@ module.exports = {
         login: { type: 'string' },
         password: { type: 'string' }
       },
+      additionalProperties: false
     }
   },
   logout: {
