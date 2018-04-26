@@ -14,6 +14,7 @@
     "cookie-parser": "1.3.x",
     "csv": "0.2.4",
     "fastify": "^1.2.1",
+    "fastify-cassandra": "git+ssh://git@github.com/nearform/fastify-cassandra.git",
     "fastify-cli": "^0.16.0",
     "fastify-cookie": "^2.0.1",
     "fastify-env": "^0.4.0",
