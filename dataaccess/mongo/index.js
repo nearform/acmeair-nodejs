@@ -1,5 +1,6 @@
 /*******************************************************************************
 * Copyright (c) 2015 IBM Corp.
+* Copyright (c) 2018 nearForm.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -23,10 +24,10 @@
 // 		findBy(collname, condition as json of field and value,function(err, docs))
 //		count(collname, condition as json of field and value, function(error, count))
 
-module.exports = function (dbclient) {
+module.exports = function (dbaccess) {
+	const dbclient = dbaccess.db
     var module = {};
 
-//	var mongodb = require('mongodb');
 	var log4js = require('log4js');
 	
 	var logger = log4js.getLogger('dataaccess/mongo');
@@ -41,98 +42,89 @@ module.exports = function (dbclient) {
 		airportCodeMappingName:"airportCodeMapping"
 	}
 
-	module.insertOne = function (collectionname, doc, callback /* (error, insertedDocument) */) {
-		dbclient.collection(collectionname,function(error, collection){
-			  if (error){
-				  logger.error("insertOne hit error:"+error);
-				  callback(error, null);
-			  }
-			  else{
-				  collection.insert(doc, {safe: true}, callback);
-			  }
-			});
+	module.insertOne = async (collectionname, doc) => {
+	  try {
+		const res = await dbclient.collection(collectionname).insert(doc, {safe: true})
+		return
+	  }
+	  catch (error) {
+		logger.error("insertOne hit error:"+error);
+		throw (error)		
+	  }
 	};
 
-	module.findOne = function(collectionname, key, callback /* (error, doc) */) {
-		dbclient.collection(collectionname, function(error, collection){
-			 if (error){
-				  logger.error("findOne hit error:"+error);
-				  callback(error, null);
-			  }
-			  else{
-				collection.find({_id: key}).toArray(function(err, docs) {
-					if (err) callback (err, null);
-	                var doc = docs[0];
-	                if (doc)
-	                	callback(null, doc);
-	                else
-	                {
-	                	logger.debug("Not found:"+key);
-	                	callback(null, null)
-	                }
-				});
-			  }
-		});
+	module.login = async (collectionname, filter) => {
+	  try {
+		const user = await dbclient.collection(collectionname).findOne(filter)
+		return user
+	  }
+	  catch (error) {
+		throw (error)
+	  }
+	}
+
+	module.findOne = async (collectionname, key) => {
+	  try {
+		const collection = dbclient.collection(collectionname)
+	    const docs = await collection.find({_id: key}).toArray()
+	    const doc = docs[0];
+        if (!doc) {
+	      logger.debug("Not found:"+key);
+		}
+		return doc
+	  }
+	  catch (err) {
+	    logger.error('error:', err)
+	    throw (err)
+	  }
 	};
 
-	module.update = function(collectionname, doc, callback /* (error, doc) */) {
-		dbclient.collection(collectionname, function(error, collection){
-			  if (error){
-				  logger.error("update hit error:"+error);
-				  callback(error, null);
-			  }
-			  else{
-				collection.update({_id: doc._id}, doc, {safe: true}, function(err, numUpdates) {
-					logger.debug(numUpdates);
-					callback(err, doc);
-				});
-			  }
-		});
+	module.update = async (collectionname, doc) => {
+	  try {
+		const collection = dbclient.collection(collectionname)
+		const numUpdates = await collection.update({_id: doc._id}, doc, {safe: true})
+		return numUpdates
+	  }
+	  catch (error) {
+		logger.error("update hit error:"+error)
+		throw (error)
+	  }
 	};
 
-	module.remove = function(collectionname,condition, callback/* (error) */) {
-		dbclient.collection(collectionname,function(error, collection){
-			  if (error){
-				  logger.error("remove hit error:"+error);
-				  callback(error, null);
-			  }
-			  else{
-				collection.remove({_id: condition._id}, {safe: true}, function(err, numDocs) {
-					if (err) callback (err);
-					else callback(null);
-				});
-			  }
-		});
+	module.remove = async (collectionname, condition) => {
+	  try {
+		const collection = dbclient.collection(collectionname)
+		const numDocs = await collection.remove({_id: condition._id}, {safe: true})
+		return
+	  }
+	  catch (err) {
+		logger.error("remove hit error:"+err)
+		throw (err)
+	  }
 	};
 
-	module.findBy = function(collectionname,condition, callback/* (error, docs) */) {
-		dbclient.collection(collectionname,function(error, collection){
-			  if (error){
-				  logger.error("findBy hit error:"+error);
-				  callback(error, null);
-			  }
-			  else{
-				collection.find(condition).toArray(function(err, docs) {
-					if (err) callback (err, null);
-					else callback(null, docs);
-				});
-			  }
-		});
+	module.findBy = async (collectionname,condition) => {
+		try {
+		  const collection = dbclient.collection(collectionname)
+		  const docs = await collection.find(condition).toArray()
+		  return docs
+		}
+		catch (error) {
+		  logger.error("findBy hit error:"+error)
+		  throw (error)
+		}
 	};
 	
-	module.count = function(collectionname, condition, callback/* (error, docs) */) {
-		dbclient.collection(collectionname,function(error, collection){
-			  if (error){
-				  logger.error("count hit error:"+error);
-				  callback(error, null);
-			  }
-			  else{
-				collection.count(condition, function (err, count) {
-					if (err) callback (err, null);
-					else callback(null, count);
-				});
-			  }
-		});
+	module.count = async (collectionname, condition) => {
+	  try {
+		const collection = dbclient.collection(collectionname)
+		const count = await collection.count(condition)
+		return count
+	  }
+	  catch (error) {
+		logger.error("count hit error:"+error)
+		throw (error)
+	  }
 	};
 	
 	return module;

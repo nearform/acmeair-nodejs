@@ -23,14 +23,15 @@
 // 		findBy(collname, condition as json of field and value,function(err, docs))
 //		TODO: count(collname, condition as json of field and value, function(error, count))
 
-module.exports = function (settings) {
+module.exports = function (dbclient /* settings */) {
     var module = {};
 
-	var cassandraDB = require('cassandra-driver');
+//	var cassandraDB = require('cassandra-driver');
 	var log4js = require('log4js');
 	
 	var logger = log4js.getLogger('dataaccess/cassandra');
-	logger.setLevel(settings.loggerLevel);
+//	logger.setLevel(settings.loggerLevel);
+	logger.setLevel("INFO")
 
 	module.dbNames = {
 		customerName: "n_customer",
@@ -56,8 +57,8 @@ module.exports = function (settings) {
 			"n_airportCodeMapping": "SELECT content from n_airportCodeMapping where id=?"
 	}
 
-	var dbConfig = calculateDBConfig();
-	var dbclient = null;
+//	var dbConfig = calculateDBConfig();
+//	var dbclient = null;
 	
 	function calculateDBConfig(){
 		var dbConfig ={};
@@ -80,11 +81,12 @@ module.exports = function (settings) {
 		});
 	}
 
-	module.insertOne = function (collectionname, doc, callback /* (error, insertedDocument) */) {
-		dbclient.execute(upsertStmt[collectionname], getUpsertParam(collectionname,doc), {prepare: true}, function(err) {
-			  if (err) {callback(err, null);}
-			  else {callback(null, doc);}
-		});
+	module.insertOne = async (collectionname, doc) => {
+	  const res =  await dbclient.execute(upsertStmt[collectionname], getUpsertParam(collectionname,doc), {prepare: true})
+	  if (err) {
+		throw err
+	  }
+	  return doc
 	};
 
 	function getUpsertParam(collectionname, doc){
@@ -97,16 +99,24 @@ module.exports = function (settings) {
 		return [doc._id, JSON.stringify(doc)];
 
 	}
-	module.findOne = function(collectionname, key, callback /* (error, doc) */) {
-		var query = findByIdStmt[collectionname];
-		if (! query) {
-			callback ("FindById not supported on "+collectionname, null);
-			return;
+	module.findOne = async function(collectionname, key) {
+	  var query = findByIdStmt[collectionname];
+	  if (!query) {
+		callback ("FindById not supported on "+collectionname, null);
+		return;
+	  }
+	  console.log('cassandra::findOne query:', query)
+	  console.log('cassandra::findOne key:', key)
+	  dbclient.execute(query, [key], {prepare: true}, function(err, result) {
+		console.log('cassandra::findOne execute() callback')
+		if(err) {
+	      console.log('cassandra::findOne error:', err)
+		  throw (err)
+		} else {
+          console.log('cassandra::findOne result:', result.rows[0])
+          return JSON.parse(result.rows[0].content)
 		}
-		dbclient.execute(query, [key],{prepare: true}, function(err, result) {
-			if(err) {callback(err, null)}
-			else {callback (null, JSON.parse(result.rows[0].content))}
-		});
+	  });
 	};
 
 	module.update = function(collectionname, doc, callback /* (error, doc) */) {

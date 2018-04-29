@@ -20,18 +20,14 @@ const DUPLICATE_KEY_ERROR_CODE = 11000
 const uuid = require('node-uuid')
 
 class Service {
-  constructor (dataAccess, provider) {
-    this.dataAccess = dataAccess
+  constructor (provider) {
     this.provider = provider
   }
 
   async login (login, password) {
-    // const user = await this.userCollection.findOne({ _id: login, password: password })
-    const user = await this.dataAccess.db.collection(this.provider.dbNames.customerName).findOne({ _id: login, password: password })
+    const user = await this.provider.login(this.provider.dbNames.customerName, { _id: login, password: password })
     if (!user) throw Boom.badData('Check your username')
-
     if (!user || user.password !== password) throw Boom.badData('Wrong credentials')
-
     try {
       const sessiondid = await this.createSession(login)
       return sessiondid
@@ -50,17 +46,16 @@ class Service {
       this.authService.createSession(customerId,callback);
       return;
     }
-    var now = new Date();
-    var later = new Date(now.getTime() + 1000*60*60*24);
+    const now = new Date();
+    const later = new Date(now.getTime() + 1000*60*60*24);
       
-    var document = { "_id" : uuid.v4(), "customerid" : customerId, "lastAccessedTime" : now, "timeoutTime" : later };
+    const document = { "_id" : uuid.v4(), "customerid" : customerId, "lastAccessedTime" : now, "timeoutTime" : later };
   
     try {
-      await this.dataAccess.db.collection(this.provider.dbNames.customerSessionName).insertOne(document)
+      await this.provider.insertOne(this.provider.dbNames.customerSessionName, document)
       return document._id
     }
     catch (error) {
-      console.log('error:', error)
       throw Boom.badImplementation();
     }
   }
@@ -70,12 +65,17 @@ class Service {
         this.authService.invalidateSession(sessionid, callback);
         return;
     }    
-    this.dataAccess.db.collection(this.provider.dbNames.customerSessionName).remove({'_id':sessionid}) 
+    await this.provider.remove(this.provider.dbNames.customerSessionName, {'_id':sessionid}) 
   }
 
   async countItems(dbName) {
-    const count = await this.dataAccess.db.collection(dbName).count({});
-    return count;
+    try {
+      const count = await this.provider.count(dbName, {})
+      return count;  
+    }
+    catch (error) {
+      throw (error)
+    }
   };
   
   async validateSession(sessionId) {
@@ -85,10 +85,10 @@ class Service {
     }
     const now = new Date();
     try {
-      const session = await this.dataAccess.db.collection(this.provider.dbNames.customerSessionName).findOne({ _id: sessionId})
+      const session = await this.provider.findOne(this.provider.dbNames.customerSessionName, sessionId)
       if (now > session.timeoutTime) {
         try {
-          await this.dataAccess.db.collection(this.provider.dbNames.customerSessionName).remove({'_id':sessionId})
+          await this.provider.remove(this.provider.dbNames.customerSessionName, {'_id': sessionId})
           return null;
         }
         catch (error) {
@@ -105,7 +105,7 @@ class Service {
 
   async findBy(dbName, condition) {
     try {
-      const docs = await this.dataAccess.db.collection(dbName).find(condition).toArray()
+      const docs = await this.provider.findBy(dbName, condition) //.toArray()
       return docs
     }
     catch (error) {
@@ -115,7 +115,7 @@ class Service {
 
   async insertOne(dbName, doc) {
     try {
-      await this.dataAccess.db.collection(dbName).insert(doc, {safe: true})
+      await this.provider.insertOne(dbName, doc)
     }
     catch (error) {
       // logger.error("insertOne hit error:"+error);
@@ -123,16 +123,17 @@ class Service {
   }
 
   async remove (dbName, condition) {
-    const numDocs = await this.dataAccess.db.collection(dbName).remove({_id: condition._id}, {safe: true})
+    const numDocs = await this.provider.remove(dbName, {_id: condition._id})
+    return
   }
 
   async findOne(dbName, key) {
-    return await this.dataAccess.db.collection(dbName).findOne({_id: key})
+    return await this.provider.findOne(dbName, key)
   }
 
   async update(dbName, doc) {
     try {
-      const numUpdates = await this.dataAccess.db.collection(dbName).update({_id: doc._id}, doc, {safe: true})
+      const numUpdates = await this.provider.update(dbName, doc)
       // logger.debug(numUpdates);
       return doc
     }

@@ -129,7 +129,6 @@ module.exports = function (loadUtil, settings) {
 	}
 
 	module.startLoadDatabase = function startLoadDatabase(req, reply) {
-		console.log('customers:', customers)
 		if (customers.length>=1) {
 			reply.send('Already loaded');
 			return;
