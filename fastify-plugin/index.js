@@ -89,8 +89,7 @@ module.exports = async function (fastify, opts) {
     // We need a connection database:
     // `fastify-mongodb` makes this connection and store the database instance into `fastify.mongo.db`
     // See https://github.com/fastify/fastify-mongodb
-//    const dbtype = fastify.config['dbtype']
-    const dbtype = 'cassandra'
+    const dbtype = fastify.config['dbtype']
     if ('mongo' === dbtype) {
       fastify.register(require('fastify-mongodb'), {
         url: `mongodb://${settings.mongoHost}:${settings.mongoPort}/acmeair`
@@ -148,9 +147,12 @@ module.exports = async function (fastify, opts) {
 async function registerRoutes (fastify, opts) {
   const { service } = fastify
 
-  // XXX This is mongo-specific and it has to be portable
-  // const dataaccess = require('../dataaccess/mongo')(fastify.mongo)
-  const dataaccess = require('../dataaccess/cassandra')(fastify.cassandra)
+  let dataaccess
+  if ('mongo' === dbtype) {
+    dataaccess = require('../dataaccess/mongo')(fastify.mongo)
+  } else if ('cassandra' === dbtype) {
+    dataaccess = require('../dataaccess/cassandra')(fastify.cassandra)
+  }
 
   const loader = new require('../loader/loader.js')(dataaccess, settings)
   const routes = new require('../routes')(dataaccess, service, settings)

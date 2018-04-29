@@ -6,7 +6,6 @@
     "start": "fastify start -p 9080 app.js"
   },
   "dependencies": {
-    "async": "0.2.10",
     "body-parser": "1.11.x",
     "boom": "^5.2.0",
     "cassandra-driver": "2.0.x",

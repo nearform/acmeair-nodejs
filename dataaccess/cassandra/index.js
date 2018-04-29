@@ -43,7 +43,7 @@ module.exports = function (dbaccess) {
 		airportCodeMappingName:"n_airportCodeMapping"
 	}
 
-	var upsertStmt ={
+	var upsertStmt = {
 		"n_customer": "INSERT INTO n_customer (id,content) values (?, ?)",
 		"n_customerSession": "INSERT INTO n_customerSession (id,content) values (?, ?)",
 		"n_booking": "INSERT INTO n_booking (customerId,id,content) values (?, ?, ?)",
@@ -83,13 +83,14 @@ module.exports = function (dbaccess) {
 	}
 
 	module.insertOne = async (collectionname, doc) => {
-	  console.log(`cassandra::insertOne collection: ${collectionname}`)
-	  console.log('cassandra::insertOne doc:', doc)
+	  console.log('table:', collectionname)
+	  console.log('document:', (doc.length > 1) ? doc[0] : doc)
 	  try {
-		const res =  await dbclient.execute(upsertStmt[collectionname], getUpsertParam(collectionname,doc), {prepare: true})
+		const res =  await dbclient.execute(upsertStmt[collectionname], getUpsertParam(collectionname, doc), {prepare: true})
 		return doc
 	  }
 	  catch (err) {
+		console.log('error:', err)
 		throw err
 	  }
 	};
@@ -107,7 +108,7 @@ module.exports = function (dbaccess) {
 	module.findOne = async (collectionname, key) => {
 	  var query = findByIdStmt[collectionname];
 	  if (!query) {
-		throw ("FindById not supported on "+collectionname);
+		throw ("FindById not supported on " + collectionname)
 	  }
 	  try {
 		const result = await dbclient.execute(query, [key], {prepare: true})

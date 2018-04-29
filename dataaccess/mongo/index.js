@@ -44,13 +44,13 @@ module.exports = function (dbaccess) {
 
 	module.insertOne = async (collectionname, doc) => {
 	  try {
-		const collection = dbclient.collection(collectionname)
-		const res = await collection.insert(doc, {safe: true})
-		return
+      const collection = dbclient.collection(collectionname)
+      const res = await collection.insert(doc, {safe: true})
+      return
 	  }
 	  catch (error) {
-		logger.error("insertOne hit error:"+error);
-		throw (error)		
+      logger.error("insertOne hit error:"+error)
+      throw (error)
 	  }
 	};
 

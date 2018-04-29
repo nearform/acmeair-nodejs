@@ -20,7 +20,7 @@ module.exports = function (loadUtil, settings) {
 	var csv = require('csv');
 	var log4js = require('log4js');
 	var uuid = require('node-uuid');
-	var async = require('async');
+    const async = require('./async')()
 	var fs = require('fs');
 	
 	var logger = log4js.getLogger('loader');
@@ -98,37 +98,47 @@ module.exports = function (loadUtil, settings) {
 		return new Date(theDate.getFullYear(), theDate.getMonth(), theDate.getDate(), randomHour, 0, 0, 0);
 	}
 
-	function insertCustomer(customer, callback) {
-		logger.debug('customer to insert = ' + JSON.stringify(customer));
-		loadUtil.insertOne(loadUtil.dbNames.customerName, customer, function(error, customerInserted) {
-			logger.debug('customer inserted = ' + JSON.stringify(customerInserted));
-			callback();
-		});
-	}
-	
-	function insertAirportCodeMapping(airportCodeMapping, callback) {
-		loadUtil.insertOne(loadUtil.dbNames.airportCodeMappingName, airportCodeMapping, function(error, airportCodeMappingInserted) {
-			logger.debug('airportCodeMapping inserted = ' + JSON.stringify(airportCodeMappingInserted));
-			callback();
-		});
-	}
-	
-	function insertFlightSegment(flightSegment, callback) {
-		logger.debug('segment to insert = ' + JSON.stringify(flightSegment));
-		loadUtil.insertOne(loadUtil.dbNames.flightSegmentName, flightSegment, function(error, flightSegmentInserted) {
-			logger.debug('flightSegment inserted = ' + JSON.stringify(flightSegmentInserted));
-			callback();
-		});
-	}
-	
-	function insertFlight(flight, callback) {
-		loadUtil.insertOne(loadUtil.dbNames.flightName, flight, function(error, flightInserted) {
-			logger.debug('flight inserted = ' + JSON.stringify(flightInserted));
-			callback();
-		});
+	async function insertCustomer(customer) {
+		logger.info('customer to insert = ' + JSON.stringify(customer));
+		try {
+		  await loadUtil.insertOne(loadUtil.dbNames.customerName, customer)
+		}
+		catch (err) {
+		  throw (err)
+		}
 	}
 
-	module.startLoadDatabase = function startLoadDatabase(req, reply) {
+	async function insertAirportCodeMapping(airportCodeMapping) {
+		logger.info('airport to insert = ' + JSON.stringify(airportCodeMapping));
+		try {
+		  await loadUtil.insertOne(loadUtil.dbNames.airportCodeMappingName, airportCodeMapping)
+		}
+		catch (err) {
+		  throw (err)
+		}
+	}
+	
+	async function insertFlightSegment(flightSegment) {
+		logger.info('segment to insert = ' + JSON.stringify(flightSegment));
+		try {
+		  await loadUtil.insertOne(loadUtil.dbNames.flightSegmentName, flightSegment)
+		}
+		catch (err) {
+		  throw (err)
+		}
+	}
+	
+	async function insertFlight(flight) {
+		logger.debug('flight to insert = ' + JSON.stringify(flight));
+		try {
+		  await loadUtil.insertOne(loadUtil.dbNames.flightName, flight)
+		}
+		catch (err) {
+		  throw (err)
+		}
+	}
+
+	module.startLoadDatabase = async function startLoadDatabase(req, reply) {
 		if (customers.length>=1) {
 			reply.send('Already loaded');
 			return;
@@ -159,7 +169,6 @@ module.exports = function (loadUtil, settings) {
 			.type("text/plain")
 			.send(loaderSettings.MAX_CUSTOMERS.toString());
 	}
-
 
 	var customerQueue = async.queue(insertCustomer, DATABASE_PARALLELISM);
 	customerQueue.drain = function() {
