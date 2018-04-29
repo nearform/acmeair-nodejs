@@ -23,7 +23,8 @@
 // 		findBy(collname, condition as json of field and value,function(err, docs))
 //		TODO: count(collname, condition as json of field and value, function(error, count))
 
-module.exports = function (dbclient /* settings */) {
+module.exports = function (dbaccess) {
+	const dbclient = dbaccess.client
     var module = {};
 
 //	var cassandraDB = require('cassandra-driver');
@@ -82,11 +83,15 @@ module.exports = function (dbclient /* settings */) {
 	}
 
 	module.insertOne = async (collectionname, doc) => {
-	  const res =  await dbclient.execute(upsertStmt[collectionname], getUpsertParam(collectionname,doc), {prepare: true})
-	  if (err) {
+	  console.log(`cassandra::insertOne collection: ${collectionname}`)
+	  console.log('cassandra::insertOne doc:', doc)
+	  try {
+		const res =  await dbclient.execute(upsertStmt[collectionname], getUpsertParam(collectionname,doc), {prepare: true})
+		return doc
+	  }
+	  catch (err) {
 		throw err
 	  }
-	  return doc
 	};
 
 	function getUpsertParam(collectionname, doc){
@@ -97,43 +102,56 @@ module.exports = function (dbclient /* settings */) {
 		if (collectionname ==='n_flightSegment')
 			return [doc.originPort, doc.destPort, doc._id, JSON.stringify(doc)];
 		return [doc._id, JSON.stringify(doc)];
-
 	}
-	module.findOne = async function(collectionname, key) {
+
+	module.findOne = async (collectionname, key) => {
 	  var query = findByIdStmt[collectionname];
 	  if (!query) {
-		callback ("FindById not supported on "+collectionname, null);
-		return;
+		throw ("FindById not supported on "+collectionname);
 	  }
-	  console.log('cassandra::findOne query:', query)
-	  console.log('cassandra::findOne key:', key)
-	  dbclient.execute(query, [key], {prepare: true}, function(err, result) {
-		console.log('cassandra::findOne execute() callback')
-		if(err) {
-	      console.log('cassandra::findOne error:', err)
-		  throw (err)
+	  try {
+		const result = await dbclient.execute(query, [key], {prepare: true})
+		if (result.rows.length) {
+		  return JSON.parse(result.rows[0].content)
 		} else {
-          console.log('cassandra::findOne result:', result.rows[0])
-          return JSON.parse(result.rows[0].content)
+		  return null
 		}
-	  });
+	  }
+	  catch (err) {
+		console.log('cassandra::findOne error:', err)
+		throw (err)
+	  }
 	};
 
-	module.update = function(collectionname, doc, callback /* (error, doc) */) {
-		dbclient.execute(upsertStmt[collectionname], getUpsertParam(collectionname,doc), {prepare: true}, function(err) {
+	module.update = async (collectionname, doc /*, callback /* (error, doc) */) => {
+	  try {
+		await dbclient.execute(upsertStmt[collectionname], getUpsertParam(collectionname,doc), {prepare: true})
+		return doc
+	  }
+	  catch (err) {
+		throw (err)
+	  }
+/*		dbclient.execute(upsertStmt[collectionname], getUpsertParam(collectionname,doc), {prepare: true}, function(err) {
 			  if (err) {callback(err, null);}
 			  else {callback(null, doc);}
-		});
+		}); */
 	};
 
-	module.remove = function(collectionname,condition, callback/* (error) */) {
-		var info = getQueryInfo(collectionname, condition)
-		var query = "DELETE from "+collectionname+" where "+ info.whereStmt;
-		logger.debug("query:"+query +", param:"+ JSON.stringify(info.param))
-		dbclient.execute(query, info.param, {prepare: true},function(err, result) {
+	module.remove = async (collectionname,condition /*, callback/* (error) */) => {
+	  const info = getQueryInfo(collectionname, condition)
+	  const query = "DELETE from "+collectionname+" where " + info.whereStmt
+	  logger.debug("query:"+query +", param:"+ JSON.stringify(info.param))
+      try {
+		const result = await dbclient.execute(query, info.param, {prepare: true})
+		return result
+	  }
+	  catch (err) {
+		throw (err)
+	  }
+/*		dbclient.execute(query, info.param, {prepare: true},function(err, result) {
 			if(err) {callback(err)}
 			else {callback (null)}
-		});
+		}); */
 	};
 
 	function getQueryInfo(collectionname, condition){
@@ -152,28 +170,44 @@ module.exports = function (dbclient /* settings */) {
 		return {"whereStmt":whereStmt, "param":param};
 	}
 
-	module.findBy = function(collectionname,condition, callback/* (error, docs) */) {
-		var info = getQueryInfo(collectionname, condition)
-		var query = "SELECT content from "+collectionname+" where "+ info.whereStmt;
-		logger.debug("query:"+query +", param:"+ JSON.stringify(info.param))
-		dbclient.execute(query, info.param,{prepare: true}, function(err, result) {
-			if(err) {callback(err, null)}
-			else {
-				var docs = [];
-				for (var i = 0; i < result.rows.length; i++) {
-					logger.debug("result["+i +"]="+ JSON.stringify(result.rows[i]));
-					docs.push(JSON.parse(result.rows[i].content));
-				}		
-				callback (null, docs)
-			}
-		});
+	module.findBy = async (collectionname, condition /*, callback/* (error, docs) */) => {
+	  const info = getQueryInfo(collectionname, condition)
+	  const query = "SELECT content from "+collectionname+" where "+ info.whereStmt
+	  logger.debug("query:"+query +", param:"+ JSON.stringify(info.param))
+	  try {
+		const result = dbclient.execute(query, info.param,{prepare: true})
+		let docs = []
+		for (let i = 0; i < result.rows.length; i++) {
+		  logger.debug("result["+i +"]="+ JSON.stringify(result.rows[i]))
+		  docs.push(JSON.parse(result.rows[i].content))
+		}
+		return docs
+	  }
+	  catch (err) {
+		throw (err)
+	  }
 	};
 	
 	//TODO Implement count method for cassandra -- currently a stub returning -1
-	module.count = function(collectionname, condition, callback/* (error, docs) */) {
-		callback(null, -1);
+	module.count = async (collectionname, condition /*, callback/* (error, docs) */) => {
+	  return -1
 	};
 	
+	module.login = async (collectionname, filter) => {
+	  try {
+		const customer = await module.findOne(collectionname, filter._id)
+		console.log('customer:', customer)
+		if (customer && customer.password === filter.password) {
+		  return customer
+		} else {
+		  return null
+		}
+	  }
+	  catch (error) {
+		throw (error)
+	  }
+	}
+
 	return module;
 
 }

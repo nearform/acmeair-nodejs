@@ -44,7 +44,8 @@ module.exports = function (dbaccess) {
 
 	module.insertOne = async (collectionname, doc) => {
 	  try {
-		const res = await dbclient.collection(collectionname).insert(doc, {safe: true})
+		const collection = dbclient.collection(collectionname)
+		const res = await collection.insert(doc, {safe: true})
 		return
 	  }
 	  catch (error) {
@@ -55,17 +56,18 @@ module.exports = function (dbaccess) {
 
 	module.login = async (collectionname, filter) => {
 	  try {
-		const user = await dbclient.collection(collectionname).findOne(filter)
-		return user
+  		const collection = dbclient.collection(collectionname)
+	  	const user = await collection.findOne(filter)
+		  return user
 	  }
 	  catch (error) {
-		throw (error)
+  		throw (error)
 	  }
 	}
 
 	module.findOne = async (collectionname, key) => {
 	  try {
-		const collection = dbclient.collection(collectionname)
+		  const collection = dbclient.collection(collectionname)
 	    const docs = await collection.find({_id: key}).toArray()
 	    const doc = docs[0];
         if (!doc) {

@@ -48,8 +48,6 @@ if (process.env.VCAP_SERVICES) {
 	else if (serviceKey && serviceKey.indexOf('redis')>-1)
 		dbtype="redis";
 }
-// XXX
-dbtype = 'cassandra'
 logger.info("db type=="+dbtype);
 
 //let initialized = false
@@ -91,8 +89,8 @@ module.exports = async function (fastify, opts) {
     // We need a connection database:
     // `fastify-mongodb` makes this connection and store the database instance into `fastify.mongo.db`
     // See https://github.com/fastify/fastify-mongodb
-    const dbtype = fastify.config['dbtype']
-//    const dbtype = 'cassandra'
+//    const dbtype = fastify.config['dbtype']
+    const dbtype = 'cassandra'
     if ('mongo' === dbtype) {
       fastify.register(require('fastify-mongodb'), {
         url: `mongodb://${settings.mongoHost}:${settings.mongoPort}/acmeair`
@@ -111,7 +109,7 @@ module.exports = async function (fastify, opts) {
       })
       // Add another business logic object to `fastify` instance
       // Again, `fastify-plugin` is used in order to access to `fastify.service` from outside
-      fastify.register(fp(async function (fastify, opts) {
+      fastify.register(fp(async (fastify, opts) => {
         const service = new Service(fastify.redis)
         fastify.decorate('service', service)
       }))
@@ -126,7 +124,7 @@ module.exports = async function (fastify, opts) {
       logger.info('called register fastify-cassandra')
       // Add another business logic object to `fastify` instance
       // Again, `fastify-plugin` is used in order to access to `fastify.service` from outside
-      fastify.register(fp(async function (fastify, opts) {
+      fastify.register(fp(async (fastify, opts) => {
         const service = new Service(require('../dataaccess/cassandra')(fastify.cassandra))
         logger.info('create fastify-cassandra service')
         fastify.decorate('service', service)
@@ -151,8 +149,8 @@ async function registerRoutes (fastify, opts) {
   const { service } = fastify
 
   // XXX This is mongo-specific and it has to be portable
-  const dataaccess = require('../dataaccess/mongo')(fastify.mongo)
-  // const dataaccess = require('../dataaccess/cassandra')(fastify.cassandra)
+  // const dataaccess = require('../dataaccess/mongo')(fastify.mongo)
+  const dataaccess = require('../dataaccess/cassandra')(fastify.cassandra)
 
   const loader = new require('../loader/loader.js')(dataaccess, settings)
   const routes = new require('../routes')(dataaccess, service, settings)
