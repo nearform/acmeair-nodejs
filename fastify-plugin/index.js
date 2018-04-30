@@ -87,7 +87,7 @@ module.exports = async function (fastify, opts) {
   fastify.register(async function (fastify, opts) {
     logger.info('config:', fastify.config)
     // We need a connection database:
-    // `fastify-mongodb` makes this connection and store the database instance into `fastify.mongo.db`
+    // `fastify-mongodb` makes this connection and stores the database instance into `fastify.mongo.db`
     // See https://github.com/fastify/fastify-mongodb
     const dbtype = fastify.config['dbtype']
     if ('mongo' === dbtype) {
