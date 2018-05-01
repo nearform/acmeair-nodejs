@@ -27,7 +27,6 @@ module.exports = function (dbaccess) {
 	const dbclient = dbaccess.client
     var module = {};
 
-//	var cassandraDB = require('cassandra-driver');
 	var log4js = require('log4js');
 	
 	var logger = log4js.getLogger('dataaccess/cassandra');
@@ -57,11 +56,8 @@ module.exports = function (dbaccess) {
 			"n_customerSession": "SELECT content from n_customerSession where id=?",
 			"n_airportCodeMapping": "SELECT content from n_airportCodeMapping where id=?"
 	}
-
-//	var dbConfig = calculateDBConfig();
-//	var dbclient = null;
 	
-	function calculateDBConfig(){
+	function calculateDBConfig() {
 		var dbConfig ={};
 		if (process.env.CASSANDRA_CP)
 			dbConfig.contactPoints = JSON.parse(process.env.CASSANDRA_CP )
@@ -72,30 +68,17 @@ module.exports = function (dbaccess) {
 		return dbConfig;
 	}
 
-
-	module.initializeDatabaseConnections = function(callback/*(error)*/) {
-		var client = new cassandraDB.Client({ contactPoints: dbConfig.contactPoints, keyspace: dbConfig.keyspace});
-		client.connect(function(err, result) {
-			logger.info('Connected.');
-			dbclient = client;
-			callback(null);
-		});
-	}
-
 	module.insertOne = async (collectionname, doc) => {
-	  console.log('table:', collectionname)
-	  console.log('document:', (doc.length > 1) ? doc[0] : doc)
 	  try {
-		const res =  await dbclient.execute(upsertStmt[collectionname], getUpsertParam(collectionname, doc), {prepare: true})
-		return doc
+  		const res =  await dbclient.execute(upsertStmt[collectionname], getUpsertParam(collectionname, doc), {prepare: true})
+	  	return doc
 	  }
 	  catch (err) {
-		console.log('error:', err)
-		throw err
+  		throw err
 	  }
-	};
+	}
 
-	function getUpsertParam(collectionname, doc){
+	function getUpsertParam(collectionname, doc) {
 		if (collectionname === 'n_booking' )
 			return [doc.customerId, doc._id, JSON.stringify(doc)];
 		if (collectionname === 'n_flight')
@@ -108,54 +91,45 @@ module.exports = function (dbaccess) {
 	module.findOne = async (collectionname, key) => {
 	  var query = findByIdStmt[collectionname];
 	  if (!query) {
-		throw ("FindById not supported on " + collectionname)
+  		throw ("FindById not supported on " + collectionname)
 	  }
 	  try {
-		const result = await dbclient.execute(query, [key], {prepare: true})
-		if (result.rows.length) {
-		  return JSON.parse(result.rows[0].content)
-		} else {
-		  return null
-		}
+	  	const result = await dbclient.execute(query, [key], {prepare: true})
+		  if (result.rows.length) {
+		    return JSON.parse(result.rows[0].content)
+  		} else {
+	  	  return null
+		  }
 	  }
 	  catch (err) {
-		console.log('cassandra::findOne error:', err)
-		throw (err)
+  		throw (err)
 	  }
-	};
+	}
 
-	module.update = async (collectionname, doc /*, callback /* (error, doc) */) => {
+	module.update = async (collectionname, doc) => {
 	  try {
-		await dbclient.execute(upsertStmt[collectionname], getUpsertParam(collectionname,doc), {prepare: true})
-		return doc
+    	await dbclient.execute(upsertStmt[collectionname], getUpsertParam(collectionname,doc), {prepare: true})
+		  return doc
 	  }
 	  catch (err) {
-		throw (err)
+  		throw (err)
 	  }
-/*		dbclient.execute(upsertStmt[collectionname], getUpsertParam(collectionname,doc), {prepare: true}, function(err) {
-			  if (err) {callback(err, null);}
-			  else {callback(null, doc);}
-		}); */
-	};
+	}
 
-	module.remove = async (collectionname,condition /*, callback/* (error) */) => {
+	module.remove = async (collectionname,condition) => {
 	  const info = getQueryInfo(collectionname, condition)
 	  const query = "DELETE from "+collectionname+" where " + info.whereStmt
 	  logger.debug("query:"+query +", param:"+ JSON.stringify(info.param))
-      try {
-		const result = await dbclient.execute(query, info.param, {prepare: true})
-		return result
+    try {
+  		const result = await dbclient.execute(query, info.param, {prepare: true})
+  		return result
 	  }
 	  catch (err) {
-		throw (err)
+	  	throw (err)
 	  }
-/*		dbclient.execute(query, info.param, {prepare: true},function(err, result) {
-			if(err) {callback(err)}
-			else {callback (null)}
-		}); */
-	};
+	}
 
-	function getQueryInfo(collectionname, condition){
+	function getQueryInfo(collectionname, condition) {
 		var param = [];
 		var whereStmt =""
 		var first = true;
@@ -171,45 +145,43 @@ module.exports = function (dbaccess) {
 		return {"whereStmt":whereStmt, "param":param};
 	}
 
-	module.findBy = async (collectionname, condition /*, callback/* (error, docs) */) => {
+	module.findBy = async (collectionname, condition) => {
 	  const info = getQueryInfo(collectionname, condition)
 	  const query = "SELECT content from "+collectionname+" where "+ info.whereStmt
 	  logger.debug("query:"+query +", param:"+ JSON.stringify(info.param))
 	  try {
-		const result = dbclient.execute(query, info.param,{prepare: true})
-		let docs = []
-		for (let i = 0; i < result.rows.length; i++) {
-		  logger.debug("result["+i +"]="+ JSON.stringify(result.rows[i]))
-		  docs.push(JSON.parse(result.rows[i].content))
-		}
-		return docs
+  		const result = dbclient.execute(query, info.param,{prepare: true})
+	  	let docs = []
+		  for (let i = 0; i < result.rows.length; i++) {
+		    logger.debug("result["+i +"]="+ JSON.stringify(result.rows[i]))
+		    docs.push(JSON.parse(result.rows[i].content))
+  		}
+	  	return docs
 	  }
 	  catch (err) {
-		throw (err)
+		  throw (err)
 	  }
-	};
+	}
 	
 	//TODO Implement count method for cassandra -- currently a stub returning -1
-	module.count = async (collectionname, condition /*, callback/* (error, docs) */) => {
+	module.count = async (collectionname, condition) => {
 	  return -1
 	};
 	
 	module.login = async (collectionname, filter) => {
 	  try {
-		const customer = await module.findOne(collectionname, filter._id)
-		console.log('customer:', customer)
-		if (customer && customer.password === filter.password) {
-		  return customer
-		} else {
-		  return null
-		}
+  		const customer = await module.findOne(collectionname, filter._id)
+  		if (customer && customer.password === filter.password) {
+	  	  return customer
+		  } else {
+		    return null
+  		}
 	  }
 	  catch (error) {
-		throw (error)
-	  }
+	    throw (error)
+    }
 	}
 
 	return module;
 
 }
-
