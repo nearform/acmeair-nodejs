@@ -109,7 +109,7 @@ module.exports = function (loadUtil, settings) {
 	}
 
 	async function insertAirportCodeMapping(airportCodeMapping) {
-		logger.info('airport to insert = ' + JSON.stringify(airportCodeMapping));
+		logger.debug('airport to insert = ' + JSON.stringify(airportCodeMapping));
 		try {
 		  await loadUtil.insertOne(loadUtil.dbNames.airportCodeMappingName, airportCodeMapping)
 		}
@@ -119,7 +119,7 @@ module.exports = function (loadUtil, settings) {
 	}
 	
 	async function insertFlightSegment(flightSegment) {
-		logger.info('segment to insert = ' + JSON.stringify(flightSegment));
+		logger.debug('segment to insert = ' + JSON.stringify(flightSegment));
 		try {
 		  await loadUtil.insertOne(loadUtil.dbNames.flightSegmentName, flightSegment)
 		}
@@ -163,7 +163,7 @@ module.exports = function (loadUtil, settings) {
 			});
 		//res.send('Trigger DB loading');
 	}
-	
+
 	module.getNumConfiguredCustomers = function (req, reply) {
 		reply
 			.type("text/plain")

@@ -25,6 +25,8 @@ module.exports = function () {
       const pickUpNextTask = () => {
         if (this.internalQueue.length) {
           return this.func(this.internalQueue.shift())
+        } else {
+          return Promise.reject()
         }
       }
       const startChain = () => {
@@ -32,14 +34,16 @@ module.exports = function () {
                 .then(function next() {
                   return pickUpNextTask()
                     .then(next)
-                  })
+                    .catch(() => {
+                      return Promise.resolve()
+                    })
+                })
       }
       let chains = []
       for (let k = 0; k < this.parallelism; k += 1) {
         chains.push(startChain())
       }
       await Promise.all(chains)
-      console.log('before drain')
       this.drain()
     },
     push: async function (q) {
