@@ -150,7 +150,7 @@ module.exports = function (dbaccess) {
 	  const query = "SELECT content from "+collectionname+" where "+ info.whereStmt
 	  logger.debug("query:"+query +", param:"+ JSON.stringify(info.param))
 	  try {
-  		const result = dbclient.execute(query, info.param,{prepare: true})
+      const result = await dbclient.execute(query, info.param,{prepare: true})
 	  	let docs = []
 		  for (let i = 0; i < result.rows.length; i++) {
 		    logger.debug("result["+i +"]="+ JSON.stringify(result.rows[i]))
