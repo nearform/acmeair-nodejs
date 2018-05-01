@@ -23,27 +23,27 @@ module.exports = function () {
     func: {},
     process: async function() {
       const pickUpNextTask = () => {
-        console.log('picked a task off the queue')
         if (this.internalQueue.length) {
-          console.log('queue length:', this.internalQueue.length)
           return this.func(this.internalQueue.shift())
         }
       }
       const startChain = () => {
-        return Promise.resolve().then(function next() {
-          console.log('before then(next)')
-          return pickUpNextTask().then(next)
-        })
+        return Promise.resolve()
+                .then(function next() {
+                  return pickUpNextTask()
+                    .then(next)
+                  })
       }
       let chains = []
       for (let k = 0; k < this.parallelism; k += 1) {
-        chains.push(startChain());
+        chains.push(startChain())
       }
       await Promise.all(chains)
+      console.log('before drain')
       this.drain()
     },
     push: async function (q) {
-      this.internalQueue.push(q)
+      this.internalQueue = q.slice()
       await this.process()
     },
     drain: function() {}
@@ -55,4 +55,4 @@ module.exports = function () {
   }
 
   return module
-}
+}()

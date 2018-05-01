@@ -20,7 +20,7 @@ module.exports = function (loadUtil, settings) {
 	var csv = require('csv');
 	var log4js = require('log4js');
 	var uuid = require('node-uuid');
-    const async = require('./async')()
+    const async = require('./async')
 	var fs = require('fs');
 	
 	var logger = log4js.getLogger('loader');
