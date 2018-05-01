@@ -99,7 +99,7 @@ module.exports = function (loadUtil, settings) {
 	}
 
 	async function insertCustomer(customer) {
-		logger.info('customer to insert = ' + JSON.stringify(customer));
+		logger.debug('customer to insert = ' + JSON.stringify(customer));
 		try {
 		  await loadUtil.insertOne(loadUtil.dbNames.customerName, customer)
 		}
