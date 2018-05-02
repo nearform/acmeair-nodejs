@@ -14,17 +14,13 @@
  * limitations under the License.
  *******************************************************************************/
 
-module.exports = function(loadUtil, settings) {
+module.exports = function(loadUtil, settings, logger) {
   var module = {};
 
   var csv = require('csv');
-  var log4js = require('log4js');
   var uuid = require('node-uuid');
   const async = require('./async');
   var fs = require('fs');
-
-  var logger = log4js.getLogger('loader');
-  logger.setLevel(settings.loggerLevel);
 
   var loaderSettings = JSON.parse(
     fs.readFileSync('./loader/loader-settings.json', 'utf8')

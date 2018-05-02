@@ -28,9 +28,6 @@ module.exports = function(dbaccess) {
   const dbclient = dbaccess.db;
   var module = {};
 
-  var log4js = require('log4js');
-  var logger = log4js.getLogger('dataaccess/mongo');
-
   module.dbNames = {
     customerName: 'customer',
     flightName: 'flight',

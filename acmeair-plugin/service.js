@@ -21,8 +21,9 @@ const DUPLICATE_KEY_ERROR_CODE = 11000;
 const uuid = require('node-uuid');
 
 class Service {
-  constructor(provider) {
+  constructor(provider, logger) {
     this.provider = provider;
+    this.logger = logger;
   }
 
   async login(login, password) {
@@ -86,6 +87,7 @@ class Service {
       const count = await this.provider.count(dbName, {});
       return count;
     } catch (error) {
+      this.logger.debug('error:', error)
       throw error;
     }
   }
@@ -109,13 +111,13 @@ class Service {
           );
           return null;
         } catch (error) {
-          fastify.log('error:', error);
+          this.logger.error('error:', error);
         }
       } else {
         return session.customerid;
       }
     } catch (error) {
-      fastify.log('error:', error);
+      this.logger.error('error:', error);
     }
   }
 
@@ -132,7 +134,7 @@ class Service {
     try {
       await this.provider.insertOne(dbName, doc);
     } catch (error) {
-      fastify.log('insertOne hit error:' + error);
+      this.logger.error('insertOne hit error:' + error);
     }
   }
 
@@ -148,13 +150,16 @@ class Service {
   async update(dbName, doc) {
     try {
       const numUpdates = await this.provider.update(dbName, doc);
-      // logger.debug(numUpdates);
+      this.logger.debug(numUpdates);
       return doc;
     } catch (e) {
-      // logger.debug('error:', e)
-      fastify.log('error:', e);
+      this.logger.debug('error:', e)
       throw e;
     }
+  }
+
+  getLogger() {
+    return this.logger;
   }
 }
 

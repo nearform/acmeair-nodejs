@@ -19,20 +19,14 @@
 const fp = require('fastify-plugin');
 
 const fs = require('fs'),
-  log4js = require('log4js'),
   settings = JSON.parse(fs.readFileSync('settings.json', 'utf8')),
   schema = require('../routes/schema.js'),
   Service = require('./service');
-
-const logger = log4js.getLogger('app');
-logger.setLevel(settings.loggerLevel);
 
 // disable process.env.PORT for now as it cause problem on mesos slave
 const port =
   process.env.VMC_APP_PORT || process.env.VCAP_APP_PORT || settings.port;
 const host = process.env.VCAP_APP_HOST || 'localhost';
-
-logger.info('host:port==' + host + ':' + port);
 
 let authService, authModule;
 const authServiceLocation = process.env.AUTH_SERVICE;
@@ -61,16 +55,13 @@ if (process.env.VCAP_SERVICES) {
   if (serviceKey && serviceKey.indexOf('cloudant') > -1) dbtype = 'cloudant';
   else if (serviceKey && serviceKey.indexOf('redis') > -1) dbtype = 'redis';
 }
-logger.info('db type==' + dbtype);
-
-//let initialized = false
 
 /*
- * This is the login plugin
- * A plugin is a self contained component, so we need to made some operations:
+ * This is the acme-air plugin
+ * A plugin is a self contained component
  * - check the configuration (fastify-env)
  * - connect to mongodb (fastify-mongodb)
- * - configure JWT library (fastify-jwt)
+ * - connect to cassandra (fastify-cassandra)
  * - build business login objects
  * - define the HTTP API
  */
@@ -92,7 +83,9 @@ module.exports = async function(fastify, opts) {
     },
     data: opts,
   });
-  logger.info('registered environment');
+  const logger = fastify.log;
+  logger.info('host:port==' + host + ':' + port);
+  logger.info('db type==' + dbtype);
 
   // This registration is made in order to wait the previous one
   // `avvio` (https://github.com/mcollina/avvio), the startup manager of `fastify`,
@@ -112,7 +105,8 @@ module.exports = async function(fastify, opts) {
       fastify.register(
         fp(async function(fastify, opts) {
           const service = new Service(
-            require('../dataaccess/mongo')(fastify.mongo)
+            require('../dataaccess/mongo')(fastify.mongo),
+            logger
           );
           fastify.decorate('service', service);
         })
@@ -132,7 +126,6 @@ module.exports = async function(fastify, opts) {
         })
       );
     } else if ('cassandra' === dbtype) {
-      // XXX - this is wrong
       fastify.register(require('fastify-cassandra'), {
         url: settings.cassandraHost || '127.0.0.1',
         name: settings.cassandraDbName || null,
@@ -145,7 +138,8 @@ module.exports = async function(fastify, opts) {
       fastify.register(
         fp(async (fastify, opts) => {
           const service = new Service(
-            require('../dataaccess/cassandra')(fastify.cassandra)
+            require('../dataaccess/cassandra')(fastify.cassandra, fastify.log),
+            logger
           );
           logger.info('create fastify-cassandra service');
           fastify.decorate('service', service);
@@ -177,7 +171,7 @@ async function registerRoutes(fastify, opts) {
     dataaccess = require('../dataaccess/cassandra')(fastify.cassandra);
   }
 
-  const loader = new require('../loader/loader.js')(dataaccess, settings);
+  const loader = new require('../loader/loader.js')(dataaccess, settings, fastify.log);
   const routes = new require('../routes')(dataaccess, service, settings);
 
   fastify.post('/login', { schema: schema.login }, routes.login);

@@ -3,7 +3,7 @@
   "version": "0.0.4",
   "private": true,
   "scripts": {
-    "start": "fastify start -p 9080 app.js"
+    "start": "fastify start -p 9080 -l info app.js"
   },
   "dependencies": {
     "body-parser": "1.11.x",

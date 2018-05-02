@@ -23,15 +23,9 @@
 // 		findBy(collname, condition as json of field and value,function(err, docs))
 //		TODO: count(collname, condition as json of field and value, function(error, count))
 
-module.exports = function(dbaccess) {
+module.exports = function(dbaccess, logger) {
   const dbclient = dbaccess.client;
   var module = {};
-
-  var log4js = require('log4js');
-
-  var logger = log4js.getLogger('dataaccess/cassandra');
-  //	logger.setLevel(settings.loggerLevel);
-  logger.setLevel('INFO');
 
   module.dbNames = {
     customerName: 'n_customer',

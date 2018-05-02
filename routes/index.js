@@ -21,7 +21,8 @@ const tllLruCache = require('ttl-lru-cache');
 module.exports = function(dataAccess, fastifyService, settings, authService) {
   const dataaccess = dataAccess,
     service = fastifyService,
-    flightCache = tllLruCache({ maxLength: settings.flightDataCacheMaxSize });
+    flightCache = tllLruCache({ maxLength: settings.flightDataCacheMaxSize }),
+    logger = service.getLogger();
   (flightDataCacheTTL =
     settings.flightDataCacheTTL == -1 ? null : settings.flightDataCacheTTL),
     (flightSegmentCache = tllLruCache({
@@ -154,14 +155,14 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
       toAirport,
       flightDate
     ) {
-      //      logger.info("getFlightByAirportsAndDepartureDate " + fromAirport + " " + toAirport + " " + flightDate);
+      logger.debug("getFlightByAirportsAndDepartureDate " + fromAirport + " " + toAirport + " " + flightDate);
 
       try {
         const flightsegment = await getFlightSegmentByOriginPortAndDestPort(
           fromAirport,
           toAirport
         );
-        //        logger.debug("flightsegment = " + JSON.stringify(flightsegment));
+        logger.debug("flightsegment = " + JSON.stringify(flightsegment));
         if (!flightsegment) {
           return { flightsegment: null, flights: null };
         }
@@ -179,19 +180,19 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
         if (settings.useFlightDataRelatedCaching) {
           var flights = flightCache.get(cacheKey);
           if (flights) {
-            //            logger.debug("cache hit - flight search, key = " + cacheKey)
+            logger.debug("cache hit - flight search, key = " + cacheKey)
             return {
               flightsegment: flightsegment,
               flights: flights == 'NULL' ? null : flights,
             };
           }
-          //          logger.debug("cache miss - flight search, key = " + cacheKey + " flightCache size = " + flightCache.size())
+          logger.debug("cache miss - flight search, key = " + cacheKey + " flightCache size = " + flightCache.size())
         }
         const searchCriteria = {
           flightSegmentId: flightsegment._id,
           scheduledDepartureTime: date,
         };
-        console.log('looking for flights');
+        logger.info('looking for flights');
         try {
           const docs = await service.findBy(
             dataaccess.dbNames.flightName,
@@ -218,11 +219,11 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
           }
           return { flightsegment: flightsegment, flights: docs };
         } catch (err) {
-          //          logger.error("hit error:"+err);
+          logger.error("hit error:"+err);
           throw err;
         }
       } catch (error) {
-        //        logger.error("Hit error:"+error);
+        logger.error("Hit error:"+error);
         throw error;
       }
     };
@@ -230,14 +231,13 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
     const getFlightSegmentByOriginPortAndDestPort = async function(
       fromAirport,
       toAirport,
-      callback /* error, flightsegment */
+      callback
     ) {
-      //      logger.info('getFlightSegmentByOriginPortAndDestPort')
       let segment;
 
       if (settings.useFlightDataRelatedCaching) {
         segment = flightSegmentCache.get(fromAirport + toAirport);
-        //        logger.info('segment:', segment)
+        logger.debug('segment:', segment)
         if (segment) {
           'cache hit - flightsegment search, key = ' + fromAirport + toAirport;
           return segment === 'NULL' ? null : segment;
@@ -248,7 +248,7 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
           ', flightSegmentCache size = ' +
           flightSegmentCache.size();
       }
-      //      fastify.log('looking for segments')
+      logger.debug('looking for segments')
       try {
         const docs = await service.findBy(
           dataaccess.dbNames.flightSegmentName,
@@ -325,7 +325,7 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
         );
         const flightSegmentReturn = result.flightsegment;
         let flightsReturn = result.flights;
-        //        logger.info('flightsReturn = ' + JSON.stringify(flightsReturn));
+        logger.debug('flightsReturn = ' + JSON.stringify(flightsReturn));
         if (flightsReturn) {
           for (let i = 0; i < flightsReturn.length; i++) {
             flightsReturn[i].flightSegment = flightSegmentReturn;
@@ -369,19 +369,19 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
         reply.send(options);
       }
     } catch (e) {
-      console.log('error:', e);
+      logger.error('error:', e);
     }
   };
 
   module.bookFlights = async (req, reply) => {
-    // logger.debug('booking flights');
+    logger.debug('booking flights');
 
     const userid = req.body.userid,
       toFlight = req.body.toFlightId,
       retFlight = req.body.retFlightId,
       oneWay = req.body.oneWayFlight == 'true';
 
-    // logger.debug("toFlight:"+toFlight+",retFlight:"+retFlight);
+    logger.debug("toFlight:"+toFlight+",retFlight:"+retFlight);
     const toBookingId = await bookFlight(toFlight, userid);
     let bookingInfo;
     if (!oneWay) {
@@ -410,7 +410,7 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
       await service.insertOne(dataaccess.dbNames.bookingName, document);
       return docId;
     } catch (e) {
-      console.log('error:', e);
+      logger.error('error:', e);
       return null;
     }
   };
