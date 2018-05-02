@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 module.exports = {
   login: {
@@ -7,19 +7,19 @@ module.exports = {
       required: ['login', 'password'],
       properties: {
         login: { type: 'string' },
-        password: { type: 'string' }
+        password: { type: 'string' },
       },
-      additionalProperties: false
-    }
+      additionalProperties: false,
+    },
   },
   logout: {
     querystring: {
       type: 'object',
       required: ['login'],
-      properties: { 
-        login: { type: 'string' }
-      }
-    }
+      properties: {
+        login: { type: 'string' },
+      },
+    },
   },
   queryFlights: {
     body: {
@@ -30,9 +30,9 @@ module.exports = {
         toAirport: { type: 'string' },
         fromDate: { type: 'string' },
         returnDate: { type: 'string' },
-        oneWay: { type: 'boolean' }
-      }
-    }
+        oneWay: { type: 'boolean' },
+      },
+    },
   },
   bookFlights: {
     body: {
@@ -42,9 +42,9 @@ module.exports = {
         userid: { type: 'string' },
         toFlightId: { type: 'string' },
         retFlightId: { type: 'string' },
-        oneWay: { type: 'boolean' }
-      }
-    }
+        oneWay: { type: 'boolean' },
+      },
+    },
   },
   cancelBooking: {
     body: {
@@ -52,35 +52,35 @@ module.exports = {
       required: ['userid', 'number'],
       properties: {
         userid: { type: 'string' },
-        number: { type: 'string' }
-      }
-    }
+        number: { type: 'string' },
+      },
+    },
   },
   bookingsByUser: {
     params: {
       type: 'object',
       required: ['user'],
       properties: {
-        user: { type: 'string' }
-      }
-    }
+        user: { type: 'string' },
+      },
+    },
   },
   getCustomerById: {
     params: {
       type: 'object',
       required: ['user'],
       properties: {
-        user: { type: 'string' }
-      }
-    }
+        user: { type: 'string' },
+      },
+    },
   },
   putCustomerById: {
     params: {
       type: 'object',
       required: ['user'],
       properties: {
-        user: { type: 'string' }
-      }
+        user: { type: 'string' },
+      },
     },
     body: {
       type: 'object',
@@ -97,10 +97,10 @@ module.exports = {
             city: { type: 'string' },
             stateProvince: { type: 'string' },
             country: { type: 'string' },
-            postalCode: { type: 'string' }
-          }
-        }
-      }
-    }
-  }
-}
+            postalCode: { type: 'string' },
+          },
+        },
+      },
+    },
+  },
+};
