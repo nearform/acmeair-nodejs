@@ -162,7 +162,7 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
           fromAirport,
           toAirport
         );
-        logger.debug("flightsegment = " + JSON.stringify(flightsegment));
+        logger.debug({flightsegment}, 'flight segment');
         if (!flightsegment) {
           return { flightsegment: null, flights: null };
         }
@@ -219,11 +219,11 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
           }
           return { flightsegment: flightsegment, flights: docs };
         } catch (err) {
-          logger.error("hit error:"+err);
+          logger.error(err);
           throw err;
         }
       } catch (error) {
-        logger.error("Hit error:"+error);
+        logger.error(error);
         throw error;
       }
     };
@@ -237,7 +237,7 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
 
       if (settings.useFlightDataRelatedCaching) {
         segment = flightSegmentCache.get(fromAirport + toAirport);
-        logger.debug('segment:', segment)
+        logger.debug('segment:'+ segment)
         if (segment) {
           'cache hit - flightsegment search, key = ' + fromAirport + toAirport;
           return segment === 'NULL' ? null : segment;
@@ -281,7 +281,7 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
       }
     };
 
-    //    logger.info('querying flights');
+    logger.debug('querying flights');
 
     const fromAirport = req.body.fromAirport,
       toAirport = req.body.toAirport,
@@ -309,7 +309,7 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
       );
       const flightSegmentOutbound = res.flightsegment;
       let flightsOutbound = res.flights;
-      //      logger.info('flightsOutbound = ' + flightsOutbound);
+      logger.debug({flightsOutbound}, 'flights outbound');
       if (flightsOutbound) {
         for (let i = 0; i < flightsOutbound.length; i++) {
           flightsOutbound[i].flightSegment = flightSegmentOutbound;
@@ -325,7 +325,7 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
         );
         const flightSegmentReturn = result.flightsegment;
         let flightsReturn = result.flights;
-        logger.debug('flightsReturn = ' + JSON.stringify(flightsReturn));
+        logger.debug({ flightsReturn }, 'flights return');
         if (flightsReturn) {
           for (let i = 0; i < flightsReturn.length; i++) {
             flightsReturn[i].flightSegment = flightSegmentReturn;
@@ -369,7 +369,7 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
         reply.send(options);
       }
     } catch (e) {
-      logger.error('error:', e);
+      logger.error(e);
     }
   };
 
@@ -381,7 +381,7 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
       retFlight = req.body.retFlightId,
       oneWay = req.body.oneWayFlight == 'true';
 
-    logger.debug("toFlight:"+toFlight+",retFlight:"+retFlight);
+    logger.debug({toFlight, retFlight});
     const toBookingId = await bookFlight(toFlight, userid);
     let bookingInfo;
     if (!oneWay) {
@@ -410,13 +410,13 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
       await service.insertOne(dataaccess.dbNames.bookingName, document);
       return docId;
     } catch (e) {
-      logger.error('error:', e);
+      logger.error(e);
       return null;
     }
   };
 
   module.bookingsByUser = async (req, reply) => {
-    // logger.debug('listing booked flights by user ' + req.params.user);
+    logger.debug('listing booked flights by user ' + req.params.user);
     try {
       const bookings = await getBookingsByUser(req.params.user);
       reply.send(bookings);
@@ -432,7 +432,7 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
   };
 
   module.cancelBooking = async (req, reply) => {
-    // logger.debug('canceling booking');
+    logger.debug('canceling booking');
     const number = req.body.number,
       userid = req.body.userid;
     try {
@@ -451,7 +451,7 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
   };
 
   module.getCustomerById = async (req, reply) => {
-    // logger.debug('getting customer by user ' + req.params.user);
+    logger.debug('getting customer by user ' + req.params.user);
     try {
       const customer = await getCustomer(req.params.user);
       reply.send(customer);
@@ -469,7 +469,7 @@ module.exports = function(dataAccess, fastifyService, settings, authService) {
   };
 
   module.putCustomerById = async (req, reply) => {
-    // logger.debug('putting customer by user ' + req.params.user);
+    logger.debug('putting customer by user ' + req.params.user);
     try {
       const customer = await updateCustomer(req.params.user, req.body);
       reply.send(customer);

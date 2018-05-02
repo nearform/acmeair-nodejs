@@ -87,7 +87,7 @@ class Service {
       const count = await this.provider.count(dbName, {});
       return count;
     } catch (error) {
-      this.logger.debug('error:', error)
+      this.logger.debug(error)
       throw error;
     }
   }
@@ -111,13 +111,13 @@ class Service {
           );
           return null;
         } catch (error) {
-          this.logger.error('error:', error);
+          this.logger.error(error);
         }
       } else {
         return session.customerid;
       }
     } catch (error) {
-      this.logger.error('error:', error);
+      this.logger.error(error);
     }
   }
 
@@ -153,7 +153,7 @@ class Service {
       this.logger.debug(numUpdates);
       return doc;
     } catch (e) {
-      this.logger.debug('error:', e)
+      this.logger.debug(e)
       throw e;
     }
   }
