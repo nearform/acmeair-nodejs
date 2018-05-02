@@ -162,12 +162,13 @@ module.exports = function (dbaccess) {
 		  throw (err)
 	  }
 	}
-	
+
 	//TODO Implement count method for cassandra -- currently a stub returning -1
 	module.count = async (collectionname, condition) => {
+		// see https://www.datastax.com/dev/blog/counting-keys-in-cassandra
 	  return -1
 	};
-	
+
 	module.login = async (collectionname, filter) => {
 	  try {
   		const customer = await module.findOne(collectionname, filter._id)

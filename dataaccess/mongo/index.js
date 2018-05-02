@@ -26,12 +26,10 @@
 
 module.exports = function (dbaccess) {
 	const dbclient = dbaccess.db
-    var module = {};
+  var module = {};
 
-	var log4js = require('log4js');
-	
+	var log4js = require('log4js');	
 	var logger = log4js.getLogger('dataaccess/mongo');
-//	logger.setLevel(settings.loggerLevel);
 
 	module.dbNames = {
 		customerName: "customer",
@@ -43,91 +41,50 @@ module.exports = function (dbaccess) {
 	}
 
 	module.insertOne = async (collectionname, doc) => {
-	  try {
-      const collection = dbclient.collection(collectionname)
-      const res = await collection.insert(doc, {safe: true})
-      return
-	  }
-	  catch (error) {
-      logger.error("insertOne hit error:"+error)
-      throw (error)
-	  }
-	};
+    const collection = dbclient.collection(collectionname)
+    const res = await collection.insert(doc, {safe: true})
+    return
+	}
 
 	module.login = async (collectionname, filter) => {
-	  try {
-  		const collection = dbclient.collection(collectionname)
-	  	const user = await collection.findOne(filter)
-		  return user
-	  }
-	  catch (error) {
-  		throw (error)
-	  }
+  	const collection = dbclient.collection(collectionname)
+		const user = await collection.findOne(filter)
+	  return user
 	}
 
 	module.findOne = async (collectionname, key) => {
-	  try {
-		  const collection = dbclient.collection(collectionname)
-	    const docs = await collection.find({_id: key}).toArray()
-	    const doc = docs[0];
-        if (!doc) {
-	      logger.debug("Not found:"+key);
-		}
+		const collection = dbclient.collection(collectionname)
+	  const docs = await collection.find({_id: key}).toArray()
+	  const doc = docs[0]
+    if (!doc) {
+	    logger.debug("Not found:"+key);
+  	}
 		return doc
-	  }
-	  catch (err) {
-	    logger.error('error:', err)
-	    throw (err)
-	  }
-	};
+	}
 
 	module.update = async (collectionname, doc) => {
-	  try {
 		const collection = dbclient.collection(collectionname)
 		const numUpdates = await collection.update({_id: doc._id}, doc, {safe: true})
 		return numUpdates
-	  }
-	  catch (error) {
-		logger.error("update hit error:"+error)
-		throw (error)
-	  }
-	};
+	}
 
 	module.remove = async (collectionname, condition) => {
-	  try {
 		const collection = dbclient.collection(collectionname)
 		const numDocs = await collection.remove({_id: condition._id}, {safe: true})
 		return
-	  }
-	  catch (err) {
-		logger.error("remove hit error:"+err)
-		throw (err)
-	  }
-	};
+	}
 
 	module.findBy = async (collectionname,condition) => {
-		try {
-		  const collection = dbclient.collection(collectionname)
-		  const docs = await collection.find(condition).toArray()
-		  return docs
-		}
-		catch (error) {
-		  logger.error("findBy hit error:"+error)
-		  throw (error)
-		}
-	};
+		const collection = dbclient.collection(collectionname)
+		const docs = await collection.find(condition).toArray()
+		return docs
+	}
 	
 	module.count = async (collectionname, condition) => {
-	  try {
 		const collection = dbclient.collection(collectionname)
 		const count = await collection.count(condition)
 		return count
-	  }
-	  catch (error) {
-		logger.error("count hit error:"+error)
-		throw (error)
-	  }
-	};
+	}
 	
-	return module;
+	return module
 }

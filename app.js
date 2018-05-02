@@ -14,13 +14,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 *******************************************************************************/
+
 'use strict'
 
 const path = require('path')
 
 module.exports = async (fastify, opts) => {
   fastify
-    .register(require('./fastify-plugin'), { prefix: '/rest/api' })
+    .register(require('./acmeair-plugin'), { prefix: '/rest/api' })
     .register(require('fastify-static'), {
       root: path.join(__dirname, 'public'),
       prefix: '/'

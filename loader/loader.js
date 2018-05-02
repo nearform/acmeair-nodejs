@@ -100,42 +100,22 @@ module.exports = function (loadUtil, settings) {
 
 	async function insertCustomer(customer) {
 		logger.debug('customer to insert = ' + JSON.stringify(customer));
-		try {
-		  await loadUtil.insertOne(loadUtil.dbNames.customerName, customer)
-		}
-		catch (err) {
-		  throw (err)
-		}
+		await loadUtil.insertOne(loadUtil.dbNames.customerName, customer)
 	}
 
 	async function insertAirportCodeMapping(airportCodeMapping) {
 		logger.debug('airport to insert = ' + JSON.stringify(airportCodeMapping));
-		try {
-		  await loadUtil.insertOne(loadUtil.dbNames.airportCodeMappingName, airportCodeMapping)
-		}
-		catch (err) {
-		  throw (err)
-		}
+		await loadUtil.insertOne(loadUtil.dbNames.airportCodeMappingName, airportCodeMapping)
 	}
 	
 	async function insertFlightSegment(flightSegment) {
 		logger.debug('segment to insert = ' + JSON.stringify(flightSegment));
-		try {
-		  await loadUtil.insertOne(loadUtil.dbNames.flightSegmentName, flightSegment)
-		}
-		catch (err) {
-		  throw (err)
-		}
+		await loadUtil.insertOne(loadUtil.dbNames.flightSegmentName, flightSegment)
 	}
 	
 	async function insertFlight(flight) {
 		logger.debug('flight to insert = ' + JSON.stringify(flight));
-		try {
-		  await loadUtil.insertOne(loadUtil.dbNames.flightName, flight)
-		}
-		catch (err) {
-		  throw (err)
-		}
+		await loadUtil.insertOne(loadUtil.dbNames.flightName, flight)
 	}
 
 	module.startLoadDatabase = async function startLoadDatabase(req, reply) {

@@ -92,14 +92,14 @@ class Service {
           return null;
         }
         catch (error) {
-          console.log('error:', error)
+          fastify.log('error:', error)
         }
       } else {
         return session.customerid
       }
     }
     catch (error) {
-      console.log('error:', error)
+      fastify.log('error:', error)
     }
   }
 
@@ -118,7 +118,7 @@ class Service {
       await this.provider.insertOne(dbName, doc)
     }
     catch (error) {
-      // logger.error("insertOne hit error:"+error);
+      fastify.log("insertOne hit error:"+error);
     }
   }
 
@@ -139,7 +139,7 @@ class Service {
     }
     catch (e) {
       // logger.debug('error:', e)
-      console.log('error:', e)
+      fastify.log('error:', e)
       throw e
     }
   }

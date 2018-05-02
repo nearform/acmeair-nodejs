@@ -1,11 +1,29 @@
+/*******************************************************************************
+* Copyright (c) 2015 IBM Corp.
+* Copyright (c) 2018 nearForm
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*    http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*******************************************************************************/
+
 const uuid = require('node-uuid')
+const tllLruCache = require('ttl-lru-cache')
 
 module.exports = function (dataAccess, fastifyService, settings, authService) {
   const dataaccess = dataAccess,
       service = fastifyService,
-      flightCache = require('ttl-lru-cache')({maxLength:settings.flightDataCacheMaxSize});
+      flightCache = tllLruCache({maxLength:settings.flightDataCacheMaxSize});
       flightDataCacheTTL = settings.flightDataCacheTTL == -1 ? null : settings.flightDataCacheTTL,
-      flightSegmentCache = require('ttl-lru-cache')({maxLength:settings.flightDataCacheMaxSize});
+      flightSegmentCache = tllLruCache({maxLength:settings.flightDataCacheMaxSize});
 
   module.login = async (req, reply) => {
     const login = req.body.login,
@@ -188,7 +206,7 @@ module.exports = function (dataAccess, fastifyService, settings, authService) {
         }
         ("cache miss - flightsegment search, key = " + fromAirport+toAirport + ", flightSegmentCache size = " + flightSegmentCache.size());
       }
-      console.log('looking for segments')
+//      fastify.log('looking for segments')
       try {
         const docs = await service.findBy(dataaccess.dbNames.flightSegmentName, {originPort: fromAirport, destPort: toAirport})
         segment = docs[0];
