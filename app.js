@@ -20,7 +20,17 @@ const path = require('path')
 
 module.exports = async (fastify, opts) => {
   fastify
-    .register(require('./fastify-plugin'), { prefix: '/rest/api' })
+    .register(require('fastify-cookie'))
+    .register(require('fastify-formbody'))
+    .register(require('./src/plugins/determine-env'))
+    .register(require('./src/plugins/configure-db'))
+    .register(require('./src/routes/loader'))
+    .register(require('./src/routes/config'))
+    .register(require('./src/routes/auth'))
+    .register(require('./src/routes/customer'))
+    .register(require('./src/routes/flights'))
+    .register(require('./src/routes/book'))
+
     .register(require('fastify-static'), {
       root: path.join(__dirname, 'public'),
       prefix: '/'
