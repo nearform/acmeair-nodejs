@@ -38,7 +38,8 @@ function hideWaitDialog() {
 }
 
 function updateLoggedInUserWelcome() {
-	const session = dojo.cookie("acmerair-user");
+	const session = dojo.cookie("acmeair-user");
+
 	if (!session) {
 		dojo.byId("loggedinwelcome").innerHTML = '';
 	} else {
@@ -66,7 +67,7 @@ function login() {
 			hideLoginWaitDialog();
 			const sessionData = `${response.sessionId};${response.customerId};${response.email}`
 
-			dojo.cookie("acmerair-user", sessionData, {expires: response.expires});
+			dojo.cookie("acmeair-user", sessionData, {expires: response.expires});
 			updateLoggedInUserWelcome();
 		},
     error: (err) => {
@@ -77,7 +78,7 @@ function login() {
 }
 
 function logout() {
-	const session = dojo.cookie("acmerair-user");
+	const session = dojo.cookie("acmeair-user");
 	if (!session) { return;	}
 	
 	const data = session.split(';')
@@ -88,7 +89,7 @@ function logout() {
 		},
 		url: 'rest/api/logout',
 		load: (response) => { 
-			dojo.cookie("acmerair-user", null, {expires: 0});
+			dojo.cookie("acmeair-user", null, {expires: 0});
 			updateLoggedInUserWelcome();
 		},
     error: (err) => {
