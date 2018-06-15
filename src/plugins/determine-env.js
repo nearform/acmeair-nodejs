@@ -1,24 +1,24 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const pino = require("pino")()
-const fs = require('fs')
+const pino = require('pino')()
 const settings = require('../../settings.json')
 
-let dbType = process.env.dbtype || "mongo"
+let dbType = process.env.dbtype || 'mongo'
 // TODO: is this JSON.parse necessary?
 let currentEnv = (process.env.VCAP_SERVICES) ? JSON.parse(process.env.VCAP_SERVICES) : 'local'
 let mongoHost, mongoPort, mongoConnectionPoolSize
 
 // determine the backend datastore type if run inside BLuemix or cloud foundry
 if (process.env.VCAP_SERVICES) {
-  const env = JSON.parse(process.env.VCAP_SERVICES);
+  const env = JSON.parse(process.env.VCAP_SERVICES)
   currentEnv = env
-  const serviceKey = Object.keys(env)[0];
-  if (serviceKey && serviceKey.indexOf('cloudant')>-1)
-    dbType="cloudant";
-  else if (serviceKey && serviceKey.indexOf('redis')>-1)
-    dbType="redis";
+  const serviceKey = Object.keys(env)[0]
+  if (serviceKey && serviceKey.indexOf('cloudant') > -1) {
+    dbType = 'cloudant'
+  } else if (serviceKey && serviceKey.indexOf('redis') > -1) {
+    dbType = 'redis'
+  }
 } else {
   mongoHost = (process.env.MONGO_HOST) ? process.env.MONGO_HOST : settings.mongoHost
   mongoPort = (process.env.MONGO_PORT) ? process.env.MONGO_PORT : settings.mongoPort
@@ -49,7 +49,7 @@ function setFastifyConfig (fastify, options, next) {
         VMC_APP_PORT: {type: 'string'},
         VCAP_APP_PORT: {type: 'string'},
         VCAP_APP_HOST: {
-          type: 'string', 
+          type: 'string',
           default: 'localhost'
         },
         AUTH_SERVICE: {type: 'string'},

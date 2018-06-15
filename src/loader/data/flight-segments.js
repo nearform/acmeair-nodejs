@@ -1,111 +1,96 @@
 'use strict'
 
- 
-
-
-
 module.exports = [
   {
     _id: 'BOM-AMS',
-    originPort: 'BOM'
-    destPort : 'AMS',
-    miles : 4258
+    originPort: 'BOM',
+    destPort: 'AMS',
+    miles: 4258
   },
   {
     _id: 'BOM-AKL',
-    originPort: 'BOM'
-    destPort : 'AKL',
-    miles : 5737
+    originPort: 'BOM',
+    destPort: 'AKL',
+    miles: 5737
   },
   {
     _id: 'BOM-BKK',
-    originPort: 'BOM'
-    destPort : 'BKK',
-    miles : 1871
+    originPort: 'BOM',
+    destPort: 'BKK',
+    miles: 1871
   },
   {
     _id: 'BOM-BRU',
-    originPort: 'BOM'
-    destPort : 'BRU',
-    miles : 4263
+    originPort: 'BOM',
+    destPort: 'BRU',
+    miles: 4263
   },
   {
     _id: 'BOM-CAI',
-    originPort: 'BOM'
-    destPort : 'CAI',
-    miles : 2699
+    originPort: 'BOM',
+    destPort: 'CAI',
+    miles: 2699
   },
   {
     _id: 'BOM-AMS',
-    originPort: 'BOM'
-    destPort : 'AMS',
-    miles : 4258
+    originPort: 'BOM',
+    destPort: 'AMS',
+    miles: 4258
   },
   {
     _id: 'BOM-AMS',
-    originPort: 'BOM'
-    destPort : 'AMS',
-    miles : 4258
+    originPort: 'BOM',
+    destPort: 'AMS',
+    miles: 4258
   },
   {
     _id: 'BOM-AMS',
-    originPort: 'BOM'
-    destPort : 'AMS',
-    miles : 4258
+    originPort: 'BOM',
+    destPort: 'AMS',
+    miles: 4258
   },
   {
     _id: 'BOM-AMS',
-    originPort: 'BOM'
-    destPort : 'AMS',
-    miles : 4258
+    originPort: 'BOM',
+    destPort: 'AMS',
+    miles: 4258
   },
   {
     _id: 'BOM-AMS',
-    originPort: 'BOM'
-    destPort : 'AMS',
-    miles : 4258
+    originPort: 'BOM',
+    destPort: 'AMS',
+    miles: 4258
   },
   {
     _id: 'BOM-AMS',
-    originPort: 'BOM'
-    destPort : 'AMS',
-    miles : 4258
+    originPort: 'BOM',
+    destPort: 'AMS',
+    miles: 4258
   },
   {
     _id: 'BOM-AMS',
-    originPort: 'BOM'
-    destPort : 'AMS',
-    miles : 4258
+    originPort: 'BOM',
+    destPort: 'AMS',
+    miles: 4258
   },
   {
     _id: 'BOM-AMS',
-    originPort: 'BOM'
-    destPort : 'AMS',
-    miles : 4258
+    originPort: 'BOM',
+    destPort: 'AMS',
+    miles: 4258
   },
   {
     _id: 'BOM-AMS',
-    originPort: 'BOM'
-    destPort : 'AMS',
-    miles : 4258
+    originPort: 'BOM',
+    destPort: 'AMS',
+    miles: 4258
   },
   {
     _id: 'BOM-AMS',
-    originPort: 'BOM'
-    destPort : 'AMS',
-    miles : 4258
+    originPort: 'BOM',
+    destPort: 'AMS',
+    miles: 4258
   },
-
-
-
-
-
-
-
-
-
-
-
   {
     _id: 'DEL',
     name: 'Delhi'

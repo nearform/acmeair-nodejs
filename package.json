@@ -24,5 +24,14 @@
   },
   "devDependencies": {
     "standard": "^11.0.1"
+  },
+  "standard": {
+    "ignore": [
+      "/acmeair*",
+      "/public/",
+      "/netflix/",
+      "/dataaccess/",
+      "authservice*"
+    ]
   }
 }

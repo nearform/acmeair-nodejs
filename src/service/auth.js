@@ -1,9 +1,9 @@
 'use strict'
-var format = require('date-fns/format')
-const uuidv4 = require('uuid/v4');
+const format = require('date-fns/format')
+const uuidv4 = require('uuid/v4')
 const addHours = require('date-fns/add_hours')
 
-const { find,
+const {
   insertOne,
   deleteOne
 } = require('../db/mongo')
@@ -25,7 +25,7 @@ const createSession = async (options, context) => {
     customerId: customer.data[0]._id,
     lastAccessed,
     expires
-  } 
+  }
 
   const result = await insertOne(dbClient, 'customerSession', doc)
   const _expires = (result.data[0]) ? result.data[0].expires : lastAccessed
@@ -42,7 +42,7 @@ const createSession = async (options, context) => {
 const deleteSession = async (options, context) => {
   const { dbClient } = options
   const sessionId = (context.sessionId) ? context.sessionId : undefined
-  const results = await deleteOne(dbClient, 'customerSession', {_id: sessionId})  
+  const results = await deleteOne(dbClient, 'customerSession', {_id: sessionId})
 
   return results
 }

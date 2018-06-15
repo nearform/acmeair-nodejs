@@ -1,7 +1,4 @@
 'use strict'
-var format = require('date-fns/format')
-const uuidv4 = require('uuid/v4');
-const addHours = require('date-fns/add_hours')
 
 const {
   deleteOne,
@@ -14,7 +11,7 @@ const getSession = async (options, context) => {
   const query = {
     _id: (context.sessionId) ? context.sessionId : ''
   }
- 
+
   const result = await find(dbClient, 'customerSession', query)
 
   return result

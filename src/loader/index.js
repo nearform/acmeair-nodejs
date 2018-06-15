@@ -2,7 +2,6 @@
 const fs = require('fs')
 const path = require('path')
 const parse = require('csv-parse')
-const addDays = require('date-fns/add_days')
 
 const filePath = path.join(__dirname, './data/mileage.csv')
 const airports = require('./data/airports')
@@ -16,7 +15,6 @@ const {
 const {
   dropCollection,
   find,
-  insertOne,
   insertMany
 } = require('../db/mongo')
 
@@ -36,7 +34,7 @@ const loadCustomers = async (options, count) => {
   }
 
   await insertMany(dbClient, 'customer', customers)
-  
+
   return 'done'
 }
 
@@ -52,7 +50,7 @@ const loadAirportCodes = async (options) => {
 }
 
 const loadFlightSegments = async (options) => {
-  return new Promise( async (resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     const { dbClient, log } = options
     const segments = []
     const originPorts = await find(dbClient, airportCodes, {originPort: true})
@@ -81,22 +79,22 @@ const loadFlightSegments = async (options) => {
   })
 }
 
-// for each flight segment 
+// for each flight segment
 //  for today until X days out
 //    schedule Y number of flights
 const loadFlights = async (options) => {
   return new Promise(async (resolve, reject) => {
-    const { dbClient, log, config} = options
+    const { dbClient, log, config } = options
     const { maxDaysToScheduleFlights } = config
     const flights = []
     const flightSegments = await find(dbClient, flightSegment, {})
 
     await dropCollection(dbClient, 'flight')
-    
+
     log.info({msg: `loading ${flightSegments.data.length * maxDaysToScheduleFlights} flights`, db: `${dbClient.db.databaseName}`})
 
     flightSegments.data.forEach((segment) => {
-      for (let daysFromToday=0; daysFromToday <= maxDaysToScheduleFlights; daysFromToday++) {
+      for (let daysFromToday = 0; daysFromToday <= maxDaysToScheduleFlights; daysFromToday++) {
         flights.push(flightTemplate(segment._id, segment.miles, daysFromToday))
       }
     })
@@ -104,7 +102,7 @@ const loadFlights = async (options) => {
     if (flights.length) {
       await insertMany(dbClient, 'flight', flights)
     }
-    
+
     return resolve('done')
   })
 }

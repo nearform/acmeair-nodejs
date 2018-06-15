@@ -17,7 +17,6 @@ const dropCollection = async (dbClient, collectionName) => {
     const collection = await dbClient.db.collection(collectionName)
     await collection.drop()
   }
- 
   return 'done'
 }
 
@@ -34,14 +33,14 @@ const count = async (dbClient, collectionName, query) => {
 
 const deleteOne = async (dbClient, collectionName, query) => {
   const results = await dbClient.db.collection(collectionName).deleteOne(query)
-  const success = (results.deletedCount > 0) ? true : false
+  const success = (results.deletedCount > 0)
 
   return {success}
 }
 
 const update = async (dbClient, collectionName, query, doc) => {
   const results = await dbClient.db.collection(collectionName).update(query, doc)
-  const success = (results.result.nModified === 1) ? true : false
+  const success = (results.result.nModified === 1)
 
   return {success, data: doc}
 }

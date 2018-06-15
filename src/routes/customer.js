@@ -11,12 +11,11 @@ const {
 } = require('../service/customer')
 
 function addRouteToFastifyInstance (fastify, opts, next) {
-  const { config, log } = fastify
   const dbClient = (fastify.mongo) ? fastify.mongo : {}
 
   fastify.route({
     method: 'GET',
-    url: `${ contextRoot }/customer/:sessionId`,
+    url: `${contextRoot}/customer/:sessionId`,
     handler: async (request, reply) => {
       const {params} = request
       const result = await findCustomerBySessionId({dbClient}, params)
@@ -27,7 +26,7 @@ function addRouteToFastifyInstance (fastify, opts, next) {
 
   fastify.route({
     method: 'POST',
-    url: `${ contextRoot }/customer/:customerId`,
+    url: `${contextRoot}/customer/:customerId`,
     handler: async (request, reply) => {
       const {params, body} = request
       const result = await updateProfile({dbClient}, {_id: params.customerId, data: body})
@@ -38,7 +37,7 @@ function addRouteToFastifyInstance (fastify, opts, next) {
 
   fastify.route({
     method: 'GET',
-    url: `${ contextRoot }/customer/:customerId/bookings`,
+    url: `${contextRoot}/customer/:customerId/bookings`,
     handler: async (request, reply) => {
       const {params} = request
       const result = await getBookings({dbClient}, {customerId: params.customerId})
@@ -49,13 +48,13 @@ function addRouteToFastifyInstance (fastify, opts, next) {
 
   fastify.route({
     method: 'POST',
-    url: `${ contextRoot }/customer/:customerId/bookings/:bookingId`,
+    url: `${contextRoot}/customer/:customerId/bookings/:bookingId`,
     handler: async (request, reply) => {
       const {params} = request
-      
+
       await cancelBooking({dbClient}, {customerId: params.customerId, _id: params.bookingId})
       const result = await getBookings({dbClient}, {customerId: params.customerId})
-      
+
       return result
     }
   })

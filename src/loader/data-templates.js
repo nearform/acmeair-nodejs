@@ -6,48 +6,48 @@ const startOfToday = require('date-fns/start_of_today')
 
 const customerTemplate = (index) => {
   return {
-    _id : uuidv4(),
+    _id: uuidv4(),
     email: `uid${index}@email.com`,
-    password : "password",
-    status : "GOLD",
-    total_miles : 1000000,
-    miles_ytd : 1000,
-    address : {
-        streetAddress1 : "123 Main St.",
-        city : "Anytown",
-        stateProvince : "NC",
-        country : "USA",
-        postalCode : "27617"
+    password: 'password',
+    status: 'GOLD',
+    total_miles: 1000000,
+    miles_ytd: 1000,
+    address: {
+      streetAddress1: '123 Main St.',
+      city: 'Anytown',
+      stateProvince: 'NC',
+      country: 'USA',
+      postalCode: '27617'
     },
-    phoneNumber : "919-123-4567",
-    phoneNumberType : "BUSINESS"
+    phoneNumber: '919-123-4567',
+    phoneNumberType: 'BUSINESS'
   }
 }
 
 const flightSegmentTemplate = (_id, origin, destination, miles) => {
   return {
     _id,
-    originPort : origin,
-    destPort : destination,
-    miles : miles
+    originPort: origin,
+    destPort: destination,
+    miles: miles
   }
 }
 
 const flightTemplate = (flightSegmentId, miles, daysToAdd) => {
-  const departure = addDays(startOfToday(), daysToAdd) 
-  const hoursTodAdd = Number(miles)/600
+  const departure = addDays(startOfToday(), daysToAdd)
+  const hoursTodAdd = Number(miles) / 600
   const arrival = addHours(departure, hoursTodAdd)
 
   return {
-    _id : uuidv4(),
+    _id: uuidv4(),
     flightSegmentId,
-    scheduledDepartureTime : departure,
-    scheduledArrivalTime : arrival,
-    firstClassBaseCost : 500,
-    economyClassBaseCost : 200,
-    numFirstClassSeats : 10,
-    numEconomyClassSeats : 200,
-    airplaneTypeId : "B747"
+    scheduledDepartureTime: departure,
+    scheduledArrivalTime: arrival,
+    firstClassBaseCost: 500,
+    economyClassBaseCost: 200,
+    numFirstClassSeats: 10,
+    numEconomyClassSeats: 200,
+    airplaneTypeId: 'B747'
   }
 }
 
