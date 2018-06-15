@@ -1,6 +1,12 @@
 {
 	"port":9080,
 	"contextRoot": "/rest/api",
+
+	"loader": {
+		"maxCustomers": 10000,
+		"maxDaysToScheduleFlights": 5,
+		"maxFlightsPerDay": 1
+	},
 		
 	"authservice_port": 9443,
 	"authContextRoot": "/acmeair-auth-service/rest/api",
