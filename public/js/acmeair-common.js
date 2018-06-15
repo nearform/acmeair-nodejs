@@ -38,12 +38,12 @@ function hideWaitDialog() {
 }
 
 function updateLoggedInUserWelcome() {
-	var loggedinuser = dojo.cookie("loggedinuser");
-	if (loggedinuser == null) {
+	const session = dojo.cookie("acmerair-user");
+	if (!session) {
 		dojo.byId("loggedinwelcome").innerHTML = '';
-	}
-	else {
-		dojo.byId("loggedinwelcome").innerHTML = 'Welcome Back ' + loggedinuser;
+	} else {
+		const data = session.split(';')
+		dojo.byId("loggedinwelcome").innerHTML = 'Welcome Back ' + data[2];
 	}
 }
 
@@ -51,64 +51,49 @@ function login() {
 	hideLoginDialog();
 	showLoginWaitDialog();
 	
-	var userString = document.getElementById('userId').value;
 	dojo.xhrPost({
 		content : {
-			login: userString,
+			login: document.getElementById('userId').value,
 			password: document.getElementById('password').value
 		},
 		url: 'rest/api/login',
-		load: function(response, ioArgs) {
-			hideLoginWaitDialog();
-			if (response != 'logged in') {
-				// TODO: why isn't error function being called in this case
-				alert('error logging in, response: ' + response);
-				return;
+		handleAs: 'json',
+		load: (response) => { 
+			if (!response) {
+				throw new Error('trouble logging in')
 			}
-			dojo.cookie("loggedinuser", userString, {expires: 5});
+
+			hideLoginWaitDialog();
+			const sessionData = `${response.sessionId};${response.customerId};${response.email}`
+
+			dojo.cookie("acmerair-user", sessionData, {expires: response.expires});
 			updateLoggedInUserWelcome();
 		},
-		error: function(response, ioArgs) {
+    error: (err) => {
 			hideLoginWaitDialog();
-			alert('error logging in, response: ' + response);
+			console.log(err)
 		}
 	});
 }
 
 function logout() {
-	updateLoggedInUserWelcome();
-	var loggedinuser = dojo.cookie("loggedinuser");
-	if (loggedinuser == null) {
-		return;
-	}
+	const session = dojo.cookie("acmerair-user");
+	if (!session) { return;	}
 	
-	dojo.xhrGet({
+	const data = session.split(';')
+
+	dojo.xhrPost({
 		content : {
-			login: loggedinuser
+			sessionId: data[0]
 		},
-		url: 'rest/api/login/logout',
-		load: function(response, ioArgs) {
-			if (response != 'logged out') {
-				// TODO: why isn't error function being called in this case
-				alert('error logging out, response: ' + response);
-				return;
-			}
-			dojo.cookie("loggedinuser", null, {expires: -1});
+		url: 'rest/api/logout',
+		load: (response) => { 
+			dojo.cookie("acmerair-user", null, {expires: 0});
 			updateLoggedInUserWelcome();
 		},
-		error: function(response, ioArgs) {
-			alert('error logging out, response: ' + response);
-		}
-	});
-}
-
-function loaddb() {
-	dojo.xhrGet({
-		url: 'rest/api/loaddb',
-		load: function(response, ioArgs) {
-		},
-		error: function(response, ioArgs) {
-			alert('error loaddb: ' + response);
+    error: (err) => {
+			hideLoginWaitDialog();
+			console.log(err)
 		}
 	});
 }
