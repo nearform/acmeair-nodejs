@@ -1,50 +1,39 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const pino = require('pino')()
 const settings = require('../../settings.json')
 
-let dbType = process.env.dbtype || 'mongo'
-// TODO: is this JSON.parse necessary?
-let currentEnv = (process.env.VCAP_SERVICES) ? JSON.parse(process.env.VCAP_SERVICES) : 'local'
-let mongoHost, mongoPort, mongoConnectionPoolSize
-
-// determine the backend datastore type if run inside BLuemix or cloud foundry
-if (process.env.VCAP_SERVICES) {
-  const env = JSON.parse(process.env.VCAP_SERVICES)
-  currentEnv = env
-  const serviceKey = Object.keys(env)[0]
-  if (serviceKey && serviceKey.indexOf('cloudant') > -1) {
-    dbType = 'cloudant'
-  } else if (serviceKey && serviceKey.indexOf('redis') > -1) {
-    dbType = 'redis'
-  }
-} else {
-  mongoHost = (process.env.MONGO_HOST) ? process.env.MONGO_HOST : settings.mongoHost
-  mongoPort = (process.env.MONGO_PORT) ? process.env.MONGO_PORT : settings.mongoPort
-  mongoConnectionPoolSize = (process.env.MONGO_POOLSIZE) ? process.env.MONGO_POOLSIZE : settings.mongoConnectionPoolSize
-}
-
+// TODO: determine if this VCAP stuff is necessary
 function setFastifyConfig (fastify, options, next) {
-  pino.info({env: currentEnv, dbType})
+  const {
+    DBTYPE,
+    CLOUDANT_USERNAME,
+    CLOUDANT_PASSWORD,
+    CLOUDANT_URL,
+    MONGO_HOST,
+    MONGO_PORT,
+    MONGO_POOLSIZE
+  } = process.env
+
 
   fastify.register(require('fastify-env'), {
     schema: {
       type: 'object',
       required: [ 'dbType' ],
+      dotenv: true,
       properties: {
-        dbType: { type: 'string', default: 'mongo' },
+        dbType: { type: 'string', default: DBTYPE },
         mongoHost: {
           type: 'string',
-          default: mongoHost
+          default: MONGO_HOST
         },
         mongoPort: {
           type: 'number',
-          default: mongoPort
+          default: MONGO_PORT
         },
         mongoConnectionPoolSize: {
           type: 'number',
-          default: mongoConnectionPoolSize
+          default: MONGO_POOLSIZE
         },
         VMC_APP_PORT: {type: 'string'},
         VCAP_APP_PORT: {type: 'string'},
