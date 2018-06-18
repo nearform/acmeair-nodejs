@@ -2,6 +2,9 @@
   "name": "acmeair",
   "version": "0.0.5",
   "private": true,
+  "engines": {
+    "node": ">=8.11.3"
+  },
   "scripts": {
     "start": "fastify start -p 9080 app.js --log-level=info",
     "lint": "standard"
