@@ -4,37 +4,32 @@ const {
   deleteOne,
   find,
   update
-} = require('../db/mongo')
+} = require('../db')
 
 const getSession = async (options, context) => {
-  const { dbClient } = options
   const query = {
     _id: (context.sessionId) ? context.sessionId : ''
   }
 
-  const result = await find(dbClient, 'customerSession', query)
+  const result = await find(options, {collectionName: 'customerSession', query})
 
   return result
 }
 
 const getProfile = async (options, context) => {
-  const { dbClient } = options
   const query = {
     _id: (context.customerId) ? context.customerId : ''
   }
-  const result = await find(dbClient, 'customer', query)
+  const result = await find(options, {collectionName: 'customer', query})
 
   return result
 }
 
 const getProfileByEmail = async (options, context) => {
-  const { dbClient } = options
   const query = {
     email: (context.email) ? context.email : ''
   }
-  const results = await find(dbClient, 'customer', query)
-
-  console.log(results)
+  const results = await find(options, {collectionName: 'customer', query})
 
   return {data: results.data}
 }
@@ -57,23 +52,21 @@ const updateProfile = async (options, context) => {
   const { dbClient } = options
   const doc = context.data
 
-  const results = await update(dbClient, 'customer', {_id: context._id}, doc)
+  const results = await update(options, {collectionName: 'customer', query: {_id: context._id}, doc})
 
   return results
 }
 
 const getBookings = async (options, context) => {
-  const { dbClient } = options
   const { customerId } = context
 
-  const results = await find(dbClient, 'booking', {customerId})
+  const results = await find(options, {collectionName: 'booking', query: {customerId}})
 
   return results
 }
 
 const cancelBooking = async (options, context) => {
-  const { dbClient } = options
-  const results = await deleteOne(dbClient, 'booking', context)
+  const results = await deleteOne(options, {collectionName: 'booking', query: context})
 
   return results
 }

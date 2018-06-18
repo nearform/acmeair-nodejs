@@ -12,6 +12,12 @@ function decorateFastifyInstance (fastify, opts, next) {
       }
     )
     log.info('fastify-mongo registered')
+  } else if (config.dbType === 'couch') {
+    const url = `https://${config.username}:${config.password}@${config.host}`
+
+    fastify.register(require('fastify-couchdb'), {url})
+    log.info('fastify-couchdb registered')
+
   } else {
     log.warn('db unsupported?')
   }

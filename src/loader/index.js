@@ -16,48 +16,48 @@ const {
   dropCollection,
   find,
   insertMany
-} = require('../db/mongo')
+} = require('../db')
 
 const airportCodes = 'airportCodeMapping'
 const flightSegment = 'flightSegment'
 
 const loadCustomers = async (options, count) => {
-  const { dbClient, log } = options
+  const { log } = options
   const customers = []
 
-  await dropCollection(dbClient, 'customer')
+  await dropCollection(options, {collectionName: 'customer'})
 
-  log.info({msg: `loading ${count} customers`, db: `${dbClient.db.databaseName}`})
+  log.info({msg: `loading ${count} customers`})
 
   for (let i = 0; i < count; i++) {
     customers.push(Object.assign({}, customerTemplate(i)))
   }
 
-  await insertMany(dbClient, 'customer', customers)
+  await insertMany(options, {collectionName: 'customer', documents: customers})
 
   return 'done'
 }
 
 const loadAirportCodes = async (options) => {
-  const { dbClient, log } = options
+  const { log } = options
 
-  log.info({msg: `loading ${airports.length} airports`, db: `${dbClient.db.databaseName}`, collection: airportCodes})
+  log.info({msg: `loading ${airports.length} airports`, collection: airportCodes})
   // to avoid primary key conflicts
-  await dropCollection(dbClient, airportCodes)
-  await insertMany(dbClient, airportCodes, airports)
+  await dropCollection(options, {collectionName: airportCodes})
+  await insertMany(options, {collectionName: airportCodes, documents: airports})
 
   return 'done'
 }
 
 const loadFlightSegments = async (options) => {
   return new Promise(async (resolve, reject) => {
-    const { dbClient, log } = options
+    const { log } = options
     const segments = []
-    const originPorts = await find(dbClient, airportCodes, {originPort: true})
+    const originPorts = await find(options, {collectionName: airportCodes, query: {originPort: true}})
     let segmentCount = 0
 
     // to avoid primary key conflicts
-    await dropCollection(dbClient, flightSegment)
+    await dropCollection(options, {collectionName: flightSegment})
 
     fs.createReadStream(filePath)
       .pipe(parse())
@@ -71,8 +71,8 @@ const loadFlightSegments = async (options) => {
         })
       })
       .on('end', async () => {
-        log.info({msg: `loading ${segments.length} flight segments`, db: `${dbClient.db.databaseName}`})
-        await insertMany(dbClient, flightSegment, segments)
+        log.info({msg: `loading ${segments.length} flight segments`})
+        await insertMany(options, {collectionName: flightSegment, documents: segments})
 
         return resolve('done')
       })
@@ -84,14 +84,14 @@ const loadFlightSegments = async (options) => {
 //    schedule Y number of flights
 const loadFlights = async (options) => {
   return new Promise(async (resolve, reject) => {
-    const { dbClient, log, config } = options
+    const { log, config } = options
     const { maxDaysToScheduleFlights } = config
     const flights = []
-    const flightSegments = await find(dbClient, flightSegment, {})
+    const flightSegments = await find(options, {collectionName: flightSegment, query: {}})
 
-    await dropCollection(dbClient, 'flight')
+    await dropCollection(options, {collectionName: 'flight'})
 
-    log.info({msg: `loading ${flightSegments.data.length * maxDaysToScheduleFlights} flights`, db: `${dbClient.db.databaseName}`})
+    log.info({msg: `loading ${flightSegments.data.length * maxDaysToScheduleFlights} flights`})
 
     flightSegments.data.forEach((segment) => {
       for (let daysFromToday = 0; daysFromToday <= maxDaysToScheduleFlights; daysFromToday++) {
@@ -100,7 +100,7 @@ const loadFlights = async (options) => {
     })
 
     if (flights.length) {
-      await insertMany(dbClient, 'flight', flights)
+      await insertMany(options, {collectionName: 'flight', documents: flights})
     }
 
     return resolve('done')

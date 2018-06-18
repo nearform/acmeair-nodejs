@@ -6,14 +6,15 @@ const { contextRoot } = require('../../settings.json')
 const { createSession, deleteSession } = require('../service/auth')
 
 function addRouteToFastifyInstance (fastify, opts, next) {
-  const dbClient = (fastify.mongo) ? fastify.mongo : {}
+  const {dbType} = fastify.config
+  const dbClient = fastify[dbType]
 
   fastify.route({
     method: 'POST',
     url: `${contextRoot}/login`,
     handler: async (request, reply) => {
       const {body} = request
-      const result = await createSession({dbClient}, body)
+      const result = await createSession({dbType, dbClient}, body)
 
       return result
     }
@@ -24,7 +25,7 @@ function addRouteToFastifyInstance (fastify, opts, next) {
     url: `${contextRoot}/logout`,
     handler: async (request, reply) => {
       const {body} = request
-      const result = await deleteSession({dbClient}, body)
+      const result = await deleteSession({dbType, dbClient}, body)
 
       return result
     }

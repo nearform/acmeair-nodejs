@@ -5,7 +5,8 @@ const DataLoader = require('../loader')
 
 function addRouteToFastifyInstance (fastify, opts, next) {
   const { config } = fastify
-  const dbClient = (fastify.mongo) ? fastify.mongo : {}
+  const {dbType} = config
+  const dbClient = fastify[dbType]
 
   fastify.route({
     method: 'POST',
@@ -16,7 +17,7 @@ function addRouteToFastifyInstance (fastify, opts, next) {
         ? request.body.numCustomers : (config.loader && config.loader.maxCustomers)
           ? config.loader.maxCustomers : 10000
 
-      const result = await DataLoader.load({dbClient, log, config: config.loader}, numberToLoad)
+      const result = await DataLoader.load({dbType, dbClient, log, config: config.loader}, numberToLoad)
 
       return result
     }

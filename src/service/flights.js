@@ -2,10 +2,9 @@
 // const isEqual = require('date-fns/is_equal')
 const parse = require('date-fns/parse')
 
-const { find } = require('../db/mongo')
+const { find } = require('../db')
 
 const show = async (options, context) => {
-  const { dbClient } = options
   const origin = (context.fromAirport) ? context.fromAirport : undefined
   const outbound = parse(context.fromDate)
   // const destination = (context.toAirport) ? context.toAirport : undefined
@@ -17,11 +16,11 @@ const show = async (options, context) => {
     originAirportCodes.push(origin)
   } else {
     // pull all airport codes that our flights originates from
-    const originAirports = await find(dbClient, 'airportCodeMapping', {originPort: true})
+    const originAirports = await find(options, {collectionName: 'airportCodeMapping', query: {originPort: true}})
     originAirportCodes = originAirports.data.map((airport) => airport._id)
   }
 
-  const originFlightSegments = await find(dbClient, 'flightSegment', {originPort: {'$in': originAirportCodes}})
+  const originFlightSegments = await find(options, {collectionName: 'flightSegment', query: {originPort: {'$in': originAirportCodes}}})
   const originFlightSegmentIds = originFlightSegments.data.map((segment) => segment._id)
   const query = {flightSegmentId: {'$in': originFlightSegmentIds}}
 
@@ -31,7 +30,7 @@ const show = async (options, context) => {
     }
   }
   // TODO:accomodate return dates in query?
-  const results = await find(dbClient, 'flight', query)
+  const results = await find(options, {collectionName: 'flight', query})
 
   return results
 }
@@ -40,7 +39,6 @@ const show = async (options, context) => {
 // originate in the same place for outbound and return...
 // no way to BOM => AMS and return AMS => BOM
 const findBySegmentId = async (options, context) => {
-  const { dbClient } = options
   const {
     flightSegmentId,
     outboundArrivalTime
@@ -48,7 +46,7 @@ const findBySegmentId = async (options, context) => {
   let results = {data: []}
 
   if (flightSegmentId) {
-    const flightSegment = await find(dbClient, 'flightSegment', {_id: flightSegmentId})
+    const flightSegment = await find(options, {collectionName: 'flightSegment', query: {_id: flightSegmentId}})
     const query = {
       flightSegmentId,
       scheduledDepartureTime: {
@@ -56,7 +54,7 @@ const findBySegmentId = async (options, context) => {
       }
     }
 
-    results = await find(dbClient, 'flight', query)
+    results = await find(options, {collectionName: 'flight', query})
     results.meta = flightSegment.data.pop()
   }
 
@@ -64,14 +62,13 @@ const findBySegmentId = async (options, context) => {
 }
 
 const findFlightSegmentByFlightId = async (options, context) => {
-  const { dbClient } = options
   const { flightId } = context
   let results = {data: []}
 
   if (flightId) {
-    const flight = await find(dbClient, 'flight', {_id: flightId})
+    const flight = await find(options, {collectionName: 'flight', query: {_id: flightId}})
     const flightSegmentId = (flight.data && flight.data[0]) ? flight.data[0].flightSegmentId : ''
-    results = await find(dbClient, 'flightSegment', {_id: flightSegmentId})
+    results = await find(options, {collectionName: 'flightSegment', query: {_id: flightSegmentId}})
   }
 
   return results
