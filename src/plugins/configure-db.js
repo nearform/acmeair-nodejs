@@ -13,7 +13,7 @@ function decorateFastifyInstance (fastify, opts, next) {
     )
     log.info('fastify-mongo registered')
   } else if (config.dbType === 'couch') {
-    const url = `https://${config.username}:${config.password}@${config.host}`
+    const url = `https://${config.cloudantUser}:${config.cloudantPassword}@${config.cloudantUrl}`
 
     fastify.register(require('fastify-couchdb'), {url})
     log.info('fastify-couchdb registered')
