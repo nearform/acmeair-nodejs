@@ -6,14 +6,16 @@ const Config = require('../service/config')
 
 function addRouteToFastifyInstance (fastify, opts, next) {
   const { config, log } = fastify
-  const dbClient = (fastify.mongo) ? fastify.mongo : {}
+  const {dbType} = config
+  const dbClient = fastify[dbType]
+
 
   fastify.route({
     method: 'GET',
     url: `${config.apiRoot}/config/count/:collectionName`,
     handler: async (request, reply) => {
       const {params} = request
-      const result = await Config.collectionCount({dbClient, log}, params.collectionName)
+      const result = await Config.collectionCount({dbType, dbClient, log}, {collectionName: params.collectionName, query: {}})
 
       log.info(`${params.collectionName} has ${result.data} records`)
 
