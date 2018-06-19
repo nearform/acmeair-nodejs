@@ -35,6 +35,18 @@ function setFastifyConfig (fastify, options, next) {
           type: 'number',
           default: MONGO_POOLSIZE
         },
+        cloudantUrl: {
+          type: 'string',
+          default: CLOUDANT_URL
+        },
+        cloudantUser: {
+          type: 'string',
+          default: CLOUDANT_USERNAME
+        },
+        cloudantPassword: {
+          type: 'string',
+          default: CLOUDANT_PASSWORD
+        },
         VMC_APP_PORT: {type: 'string'},
         VCAP_APP_PORT: {type: 'string'},
         VCAP_APP_HOST: {
