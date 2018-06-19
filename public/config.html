@@ -136,7 +136,7 @@
       });
 
       dojo.xhrGet({
-        url: "rest/api/config/count/customerSessions",
+        url: "rest/api/config/count/session",
         handleAs: "json",
         load: (response) => {  
           document.getElementById('sessionData').innerHTML=response.data;
@@ -158,7 +158,7 @@
       });       
 
       dojo.xhrGet({
-        url: "rest/api/config/count/flightSegment",
+        url: "rest/api/config/count/flight_segment",
         handleAs: "json",
         load: (response) => {  
           document.getElementById('flightSegmentData').innerHTML=response.data;
@@ -180,7 +180,7 @@
       });       
 
       dojo.xhrGet({
-        url: "rest/api/config/count/airportCodeMapping",
+        url: "rest/api/config/count/airport",
         handleAs: "json",
         load: (response) => {  
           document.getElementById('airportData').innerHTML=response.data;
