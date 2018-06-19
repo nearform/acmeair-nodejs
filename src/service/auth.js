@@ -12,7 +12,6 @@ const {
 const { getProfileByEmail } = require('./customer')
 
 const createSession = async (options, context) => {
-  const { dbClient } = options
   const customer = await getProfileByEmail(options, {email: context.login})
 
   if (customer.data && !customer.data[0]) {

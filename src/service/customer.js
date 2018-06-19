@@ -50,25 +50,19 @@ const findCustomerBySessionId = async (options, context) => {
 }
 
 const updateProfile = async (options, context) => {
-  const { dbClient } = options
   const doc = context.data
-
   const results = await update(options, {collectionName: names.customer, query: {_id: context._id}, doc})
-
   return results
 }
 
 const getBookings = async (options, context) => {
   const { customerId } = context
-
   const results = await find(options, {collectionName: names.booking, query: {customerId}})
-
   return results
 }
 
 const cancelBooking = async (options, context) => {
   const results = await deleteOne(options, {collectionName: names.booking, query: context})
-
   return results
 }
 

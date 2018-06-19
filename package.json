@@ -23,7 +23,6 @@
     "fastify-redis": "^0.1.1",
     "fastify-static": "^0.4.1",
     "fastify-swagger": "^0.1.1",
-    "ibm-cos-sdk": "^1.2.1",
     "mongodb": "2.0.x",
     "nano": "^6.4.4",
     "uuid": "^3.2.1"

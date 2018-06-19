@@ -1,5 +1,4 @@
 'use strict'
-
 const { count } = require('../db')
 
 const collectionCount = async (options, collectionName) => {

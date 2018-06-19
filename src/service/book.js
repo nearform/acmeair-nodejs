@@ -13,7 +13,7 @@ const flight = async (options, context) => {
 
   return results
 }
-  
+
 module.exports = {
   flight
 }

@@ -17,7 +17,6 @@ function decorateFastifyInstance (fastify, opts, next) {
 
     fastify.register(require('fastify-couchdb'), {url})
     log.info('fastify-couchdb registered')
-
   } else {
     log.warn('db unsupported?')
   }

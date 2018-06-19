@@ -6,12 +6,11 @@ const dbDestroy = (dbClient, collectionName) => {
       if (err &&
         err.statusCode &&
         err.statusCode !== 404) {
-
         return reject(err)
       }
 
       return resolve(response)
-    }) 
+    })
   })
 }
 
@@ -25,7 +24,7 @@ const dbCreate = (dbClient, collectionName) => {
       }
 
       return resolve(response)
-    }) 
+    })
   })
 }
 
@@ -39,8 +38,8 @@ const docBulk = async (dbClient, collectionName, documents) => {
       }
 
       return resolve(response)
-    }) 
-  }) 
+    })
+  })
 }
 
 const docInsert = async (dbClient, collectionName, documents) => {
@@ -53,8 +52,8 @@ const docInsert = async (dbClient, collectionName, documents) => {
       }
 
       return resolve(response)
-    }) 
-  }) 
+    })
+  })
 }
 
 const docDestroy = async (dbClient, collectionName, query) => {
@@ -67,8 +66,8 @@ const docDestroy = async (dbClient, collectionName, query) => {
       }
 
       return resolve(response)
-    }) 
-  }) 
+    })
+  })
 }
 
 const _find = async (dbClient, collectionName, query) => {
@@ -88,7 +87,7 @@ const _find = async (dbClient, collectionName, query) => {
   })
 }
 
-const _get = async (dbClient, collectionName, query) => {
+const _get = async (dbClient, collectionName, query) => { // eslint-disable-line
   const db = await dbClient.use(collectionName)
 
   return new Promise((resolve, reject) => {
@@ -98,10 +97,9 @@ const _get = async (dbClient, collectionName, query) => {
       }
 
       return resolve({data: response})
-    }) 
-  }) 
+    })
+  })
 }
-
 
 const _list = async (dbClient, collectionName) => {
   const db = await dbClient.use(collectionName)
@@ -113,8 +111,8 @@ const _list = async (dbClient, collectionName) => {
       }
 
       return resolve({data: response})
-    }) 
-  }) 
+    })
+  })
 }
 
 const dropCollection = async (dbClient, collectionName) => {
@@ -166,12 +164,14 @@ const createCollection = async (dbClient, collectionName) => {
 
 const deleteOne = async (dbClient, collectionName, query) => {
   try {
+    // TODO: couch leaves documents in place with _deleted: true
+    // need to make sure this doesn't break the queries we run
+    // related to a session.
     await docDestroy(dbClient, collectionName, query)
-
   } catch (err) {
     console.log(err)
   }
-  
+
   return {success: true}
 }
 

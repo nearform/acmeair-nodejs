@@ -15,7 +15,6 @@ function setFastifyConfig (fastify, options, next) {
     MONGO_POOLSIZE
   } = process.env
 
-
   fastify.register(require('fastify-env'), {
     schema: {
       type: 'object',

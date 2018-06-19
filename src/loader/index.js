@@ -20,7 +20,6 @@ const {
   names
 } = require('../db')
 
-
 const loadCustomers = async (options, count) => {
   const { log } = options
   const customers = []

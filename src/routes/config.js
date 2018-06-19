@@ -9,7 +9,6 @@ function addRouteToFastifyInstance (fastify, opts, next) {
   const {dbType} = config
   const dbClient = fastify[dbType]
 
-
   fastify.route({
     method: 'GET',
     url: `${config.apiRoot}/config/count/:collectionName`,

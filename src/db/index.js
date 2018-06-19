@@ -4,7 +4,7 @@ const MongoDB = require('./mongo')
 const CouchDB = require('./couch-db')
 
 const determineDbService = (dbType) => {
-  switch(dbType) {
+  switch (dbType) {
     case 'couch':
       return CouchDB
     default:
@@ -88,8 +88,8 @@ const count = async (options, context) => {
 
 const createCollection = async (options, context) => {
   // mongo can create collections on insert
-  if (options.dbType === 'mongo') { return 'done'}
-    
+  if (options.dbType === 'mongo') { return 'done' }
+
   const {dbClient, dbType} = options
   const {collectionName} = context
   const dbService = determineDbService(dbType)
