@@ -1,11 +1,9 @@
 'use strict'
 
-const { count } = require('../db/mongo')
+const { count } = require('../db')
 
 const collectionCount = async (options, collectionName) => {
-  const { dbClient } = options
-  const result = await count(dbClient, collectionName, {})
-
+  const result = await count(options, collectionName, {})
   return result
 }
 

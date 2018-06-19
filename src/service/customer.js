@@ -3,7 +3,8 @@
 const {
   deleteOne,
   find,
-  update
+  update,
+  names
 } = require('../db')
 
 const getSession = async (options, context) => {
@@ -11,7 +12,7 @@ const getSession = async (options, context) => {
     _id: (context.sessionId) ? context.sessionId : ''
   }
 
-  const result = await find(options, {collectionName: 'customerSession', query})
+  const result = await find(options, {collectionName: names.session, query})
 
   return result
 }
@@ -20,7 +21,7 @@ const getProfile = async (options, context) => {
   const query = {
     _id: (context.customerId) ? context.customerId : ''
   }
-  const result = await find(options, {collectionName: 'customer', query})
+  const result = await find(options, {collectionName: names.customer, query})
 
   return result
 }
@@ -29,7 +30,7 @@ const getProfileByEmail = async (options, context) => {
   const query = {
     email: (context.email) ? context.email : ''
   }
-  const results = await find(options, {collectionName: 'customer', query})
+  const results = await find(options, {collectionName: names.customer, query})
 
   return {data: results.data}
 }
@@ -52,7 +53,7 @@ const updateProfile = async (options, context) => {
   const { dbClient } = options
   const doc = context.data
 
-  const results = await update(options, {collectionName: 'customer', query: {_id: context._id}, doc})
+  const results = await update(options, {collectionName: names.customer, query: {_id: context._id}, doc})
 
   return results
 }
@@ -60,13 +61,13 @@ const updateProfile = async (options, context) => {
 const getBookings = async (options, context) => {
   const { customerId } = context
 
-  const results = await find(options, {collectionName: 'booking', query: {customerId}})
+  const results = await find(options, {collectionName: names.booking, query: {customerId}})
 
   return results
 }
 
 const cancelBooking = async (options, context) => {
-  const results = await deleteOne(options, {collectionName: 'booking', query: context})
+  const results = await deleteOne(options, {collectionName: names.booking, query: context})
 
   return results
 }
