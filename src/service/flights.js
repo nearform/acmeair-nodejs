@@ -2,7 +2,7 @@
 // const isEqual = require('date-fns/is_equal')
 const parse = require('date-fns/parse')
 
-const { find } = require('../db')
+const { find, names } = require('../db')
 
 const show = async (options, context) => {
   const origin = (context.fromAirport) ? context.fromAirport : undefined
@@ -16,11 +16,11 @@ const show = async (options, context) => {
     originAirportCodes.push(origin)
   } else {
     // pull all airport codes that our flights originates from
-    const originAirports = await find(options, {collectionName: 'airportCodeMapping', query: {originPort: true}})
+    const originAirports = await find(options, {collectionName: names.airport, query: {originPort: true}})
     originAirportCodes = originAirports.data.map((airport) => airport._id)
   }
 
-  const originFlightSegments = await find(options, {collectionName: 'flightSegment', query: {originPort: {'$in': originAirportCodes}}})
+  const originFlightSegments = await find(options, {collectionName: names.flightSegment, query: {originPort: {'$in': originAirportCodes}}})
   const originFlightSegmentIds = originFlightSegments.data.map((segment) => segment._id)
   const query = {flightSegmentId: {'$in': originFlightSegmentIds}}
 
@@ -30,7 +30,7 @@ const show = async (options, context) => {
     }
   }
   // TODO:accomodate return dates in query?
-  const results = await find(options, {collectionName: 'flight', query})
+  const results = await find(options, {collectionName: names.flight, query})
 
   return results
 }
@@ -46,7 +46,7 @@ const findBySegmentId = async (options, context) => {
   let results = {data: []}
 
   if (flightSegmentId) {
-    const flightSegment = await find(options, {collectionName: 'flightSegment', query: {_id: flightSegmentId}})
+    const flightSegment = await find(options, {collectionName: names.flightSegment, query: {_id: flightSegmentId}})
     const query = {
       flightSegmentId,
       scheduledDepartureTime: {
@@ -54,7 +54,7 @@ const findBySegmentId = async (options, context) => {
       }
     }
 
-    results = await find(options, {collectionName: 'flight', query})
+    results = await find(options, {collectionName: names.flight, query})
     results.meta = flightSegment.data.pop()
   }
 
@@ -66,9 +66,9 @@ const findFlightSegmentByFlightId = async (options, context) => {
   let results = {data: []}
 
   if (flightId) {
-    const flight = await find(options, {collectionName: 'flight', query: {_id: flightId}})
+    const flight = await find(options, {collectionName: names.flight, query: {_id: flightId}})
     const flightSegmentId = (flight.data && flight.data[0]) ? flight.data[0].flightSegmentId : ''
-    results = await find(options, {collectionName: 'flightSegment', query: {_id: flightSegmentId}})
+    results = await find(options, {collectionName: names.flightSegment, query: {_id: flightSegmentId}})
   }
 
   return results
