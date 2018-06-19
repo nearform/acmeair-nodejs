@@ -14,18 +14,18 @@ const {
 
 const {
   dropCollection,
+  createCollection,
   find,
-  insertMany
+  insertMany,
+  names
 } = require('../db')
 
-const airportCodes = 'airportCodeMapping'
-const flightSegment = 'flightSegment'
 
 const loadCustomers = async (options, count) => {
   const { log } = options
   const customers = []
 
-  await dropCollection(options, {collectionName: 'customer'})
+  await dropCollection(options, {collectionName: names.customer})
 
   log.info({msg: `loading ${count} customers`})
 
@@ -33,7 +33,7 @@ const loadCustomers = async (options, count) => {
     customers.push(Object.assign({}, customerTemplate(i)))
   }
 
-  await insertMany(options, {collectionName: 'customer', documents: customers})
+  await insertMany(options, {collectionName: names.customer, documents: customers})
 
   return 'done'
 }
@@ -41,10 +41,10 @@ const loadCustomers = async (options, count) => {
 const loadAirportCodes = async (options) => {
   const { log } = options
 
-  log.info({msg: `loading ${airports.length} airports`, collection: airportCodes})
+  log.info({msg: `loading ${airports.length} airports`, collection: names.airport})
   // to avoid primary key conflicts
-  await dropCollection(options, {collectionName: airportCodes})
-  await insertMany(options, {collectionName: airportCodes, documents: airports})
+  await dropCollection(options, {collectionName: names.airport})
+  await insertMany(options, {collectionName: names.airport, documents: airports})
 
   return 'done'
 }
@@ -53,11 +53,11 @@ const loadFlightSegments = async (options) => {
   return new Promise(async (resolve, reject) => {
     const { log } = options
     const segments = []
-    const originPorts = await find(options, {collectionName: airportCodes, query: {originPort: true}})
+    const originPorts = await find(options, {collectionName: names.airport, query: {originPort: true}})
     let segmentCount = 0
 
     // to avoid primary key conflicts
-    await dropCollection(options, {collectionName: flightSegment})
+    await dropCollection(options, {collectionName: names.flightSegment})
 
     fs.createReadStream(filePath)
       .pipe(parse())
@@ -72,7 +72,7 @@ const loadFlightSegments = async (options) => {
       })
       .on('end', async () => {
         log.info({msg: `loading ${segments.length} flight segments`})
-        await insertMany(options, {collectionName: flightSegment, documents: segments})
+        await insertMany(options, {collectionName: names.flightSegment, documents: segments})
 
         return resolve('done')
       })
@@ -87,9 +87,9 @@ const loadFlights = async (options) => {
     const { log, config } = options
     const { maxDaysToScheduleFlights } = config
     const flights = []
-    const flightSegments = await find(options, {collectionName: flightSegment, query: {}})
+    const flightSegments = await find(options, {collectionName: names.flightSegment, query: {}})
 
-    await dropCollection(options, {collectionName: 'flight'})
+    await dropCollection(options, {collectionName: names.flight})
 
     log.info({msg: `loading ${flightSegments.data.length * maxDaysToScheduleFlights} flights`})
 
@@ -100,11 +100,16 @@ const loadFlights = async (options) => {
     })
 
     if (flights.length) {
-      await insertMany(options, {collectionName: 'flight', documents: flights})
+      await insertMany(options, {collectionName: names.flight, documents: flights})
     }
 
     return resolve('done')
   })
+}
+
+const createEmptyCollection = async (options, collectionName) => {
+  await createCollection(options, {collectionName})
+  return 'done'
 }
 
 const load = async (options, count) => {
@@ -112,6 +117,8 @@ const load = async (options, count) => {
   await loadAirportCodes(options)
   await loadFlightSegments(options)
   await loadFlights(options)
+  await createEmptyCollection(options, names.booking)
+  await createEmptyCollection(options, names.session)
 
   return 'done'
 }
