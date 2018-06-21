@@ -35,8 +35,7 @@
       "/acmeair*",
       "/public/",
       "/netflix/",
-      "/dataaccess/",
-      "authservice*"
+      "/dataaccess/"
     ]
   }
 }
