@@ -1,0 +1,105 @@
+// QUERIES using origin BOM and destination AMS
+//
+// ### OLD CODE
+// searches for flight segments based on the FROM/TO of the frontend
+//   BOM, AMS = 1 Segment
+// queries all flights for that segment and specific scheduledDepartureTime
+//   BOM-AMS = 1 Flight
+
+{ title: 'acmeair-flights-old-code',
+  url: 'http://localhost:9080/rest/api/flights/queryflights',
+  socketPath: undefined,
+  requests: 
+   { average: 495.2,
+     mean: 495.2,
+     stddev: 141.3,
+     min: 105,
+     max: 662,
+     total: 4952,
+     sent: 4962 },
+  latency: 
+   { average: 19.69,
+     mean: 19.69,
+     stddev: 45.62,
+     min: 3,
+     max: 1026.932729,
+     p50: 17,
+     p75: 21,
+     p90: 26,
+     p99: 48,
+     p999: 1022,
+     p9999: 1026,
+     p99999: 1026 },
+  throughput: 
+   { average: 389324.8,
+     mean: 389324.8,
+     stddev: 110145.28,
+     min: 82635,
+     max: 520994,
+     total: 3897224 },
+  errors: 0,
+  timeouts: 0,
+  duration: 10,
+  start: 2018-06-21T18:48:15.477Z,
+  finish: 2018-06-21T18:48:25.517Z,
+  connections: 10,
+  pipelining: 1,
+  non2xx: 0,
+  '1xx': 0,
+  '2xx': 4952,
+  '3xx': 0,
+  '4xx': 0,
+  '5xx': 0 }
+
+// QUERIES using BOM for Origin
+// 
+// ### NEW CODE
+// searches for flight segments out of origin port
+//   BOM = 30 segements
+// queries all flights for those segments after scheduledDepartureTime
+//   BOM = 174 flights
+//
+{ title: 'acmeair-flights',
+  url: 'http://localhost:9080/rest/api/flights',
+  socketPath: undefined,
+  requests: 
+   { average: 218.4,
+     mean: 218.4,
+     stddev: 27.58,
+     min: 166,
+     max: 261,
+     total: 2184,
+     sent: 2194 },
+  latency: 
+   { average: 45.11,
+     mean: 45.11,
+     stddev: 14.11,
+     min: 10,
+     max: 113.375002,
+     p50: 43,
+     p75: 52,
+     p90: 64,
+     p99: 88,
+     p999: 110,
+     p9999: 113,
+     p99999: 113 },
+  throughput: 
+   { average: 11,481,907.2,
+     mean: 11481907.2,
+     stddev: 1468006.4,
+     min: 8740564,
+     max: 13742694,
+     total: 114996336 },
+  errors: 0,
+  timeouts: 0,
+  duration: 10,
+  start: 2018-06-21T21:58:11.951Z,
+  finish: 2018-06-21T21:58:21.973Z,
+  connections: 10,
+  pipelining: 1,
+  non2xx: 0,
+  '1xx': 0,
+  '2xx': 2184,
+  '3xx': 0,
+  '4xx': 0,
+  '5xx': 0 }
