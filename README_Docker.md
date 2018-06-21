@@ -18,3 +18,10 @@ c386c4ebcea6    mongo:latest    ...0.0.0.0:27017->27017/tcp   acmeair-mongo
 ```
 docker build . -t acmeair:latest
 ```
+
+### Mongo
+If you are running mongo in a container using our `docker-compose` you will need to modify your .env file to what is below
+
+```
+MONGO_HOST=acmeair-mongo
+```
