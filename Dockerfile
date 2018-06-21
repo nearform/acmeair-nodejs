@@ -1,37 +1,17 @@
-# Format: FROM    repository[:version]
-FROM       ubuntu:latest
+FROM node:8.11.3
 
-# Format: MAINTAINER Name <email@addr.ess>
-MAINTAINER Yang Lei <yanglei@us.ibm.com>
+COPY package.json /tmp
+WORKDIR /tmp
+RUN npm install 
 
-# Installation:
+# copy code and delete local modules
+COPY . /opt/app-root/src
+# remove local node_modules
+RUN rm -rf /usr/src/app/node_modules
+# copy in our dependency install from above.
+RUN cp -r /tmp/node_modules/ /opt/app-root/src/node_modules
 
-# Update apt-get sources AND install NodeJS and npm
-RUN apt-get update && apt-get install -y nodejs && apt-get install -y npm 
+EXPOSE 9080
 
-# The real logic
-
-ADD ./ /var/apps/acmeair-nodejs
-
-RUN \
-  rm -fr /var/apps/acmeair-nodejs/.git ;\
-  cd /var/apps/acmeair-nodejs ;\
-  npm install;\
-  chmod +x run.sh
-
-
-WORKDIR /var/apps/acmeair-nodejs
-
-EXPOSE 9080 9443
-
-ENV APP_NAME app.js
-
-# Use the following to indicate authentication micro-service location: host:port
-#ENV AUTH_SERVICE
-
-# Use the following environment variable to define datasource location
-#ENV MONGO_URL mongodb://localhost:27017/acmeair
-#ENV CLOUDANT_URL
-
-
-CMD ["./run.sh"]
+WORKDIR /opt/app-root/src
+CMD ["npm", "run", "start"]
