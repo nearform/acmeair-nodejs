@@ -3,7 +3,7 @@
 An implementation of the Acme Air sample application for NodeJS.  This implementation can support multiple datastores, can run in several application modes, and can support running on a variety of runtime platforms including standalone bare metal  system, Virtual Machines, docker containers, IBM Bluemix, IBM Bluemix Container Service.
 
 # Dependencies
-[NodeJs 8.11.3](https://nodejs.org/en/download/)
+[Node.js 8.11.3](https://nodejs.org/en/download/)
 
 ### Your choice of Database:
 [MongoDB](http://www.mongodb.org) 
