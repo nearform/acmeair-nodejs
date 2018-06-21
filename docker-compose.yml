@@ -1,0 +1,16 @@
+version: "2"
+services:
+  mongo:
+    container_name: acmeair-mongo
+    image: mongo:latest
+    volumes:
+      - ./data/db:/data/db
+    ports:
+      - 27017:27017
+  backend: 
+    container_name: acmeair-backend
+    image: acmeair:latest
+    build: 
+      context: .
+    ports:
+      - 9080:9080
