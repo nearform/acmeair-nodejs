@@ -6,6 +6,8 @@ function decorateFastifyInstance (fastify, opts, next) {
   const { config, log } = fastify
 
   if (config.dbType === 'mongo') {
+    log.info(`attempting connection to mongo ${config.mongoHost}:${config.mongoPort}`)
+
     fastify.register(require('fastify-mongodb'),
       {
         url: `mongodb://${config.mongoHost}:${config.mongoPort}/acmeair`
