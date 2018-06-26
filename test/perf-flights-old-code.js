@@ -14,12 +14,7 @@ autocannon({
     'Content-Type': 'application/x-www-form-urlencoded',
     'Cookie': 'sessionid=0bdaf762-2eed-4adc-ad75-674565f74bb5; loggedinuser=uid0%40email.com'
   },
-  connections: 10, //default
-  pipelining: 1, // default
-  duration: 10 // default
-}, (err, results) => {
-
-  console.log(results)
-
-})
-
+  connections: 10,
+  pipelining: 1,
+  duration: 10
+}, console.log)

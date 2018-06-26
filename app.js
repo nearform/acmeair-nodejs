@@ -28,7 +28,7 @@ fastify
     prefix: '/'
   })
 
-  .listen(_port, _host,  (err, address) => {
+  .listen(_port, _host, (err, address) => {
     if (err) {
       console.log(err)
       process.exit(1)

@@ -13,12 +13,7 @@ autocannon({
   headers: {
     'Content-Type': 'application/x-www-form-urlencoded'
   },
-  connections: 10, 
-  pipelining: 1, 
+  connections: 10,
+  pipelining: 1,
   duration: 30
-}, (err, results) => {
-
-  console.log(results)
-
-})
-
+}, console.log)
