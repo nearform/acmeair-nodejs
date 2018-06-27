@@ -98,6 +98,16 @@ const createCollection = async (options, context) => {
   return results
 }
 
+const createIndices = async (options, context) => {
+  // only intended for mongo, related to benchmark queries
+  if (options.dbType !== 'mongo') { return 'done' }
+
+  const {dbClient, dbType} = options
+  const dbService = determineDbService(dbType)
+  const results = dbService.createIndices(dbClient, context)
+  return results
+}
+
 module.exports = {
   count,
   deleteOne,
@@ -107,5 +117,6 @@ module.exports = {
   insertMany,
   insertOne,
   update,
-  names: dbNames
+  names: dbNames,
+  createIndices
 }
