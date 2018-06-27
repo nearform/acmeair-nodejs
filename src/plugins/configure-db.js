@@ -8,9 +8,12 @@ function decorateFastifyInstance (fastify, opts, next) {
   if (config.dbType === 'mongo') {
     log.info(`attempting connection to mongo ${config.mongoHost}:${config.mongoPort}`)
 
+    const poolSize = (config.mongoConnectionPoolSize) ? config.mongoConnectionPoolSize : 5
+
     fastify.register(require('fastify-mongodb'),
       {
-        url: `mongodb://${config.mongoHost}:${config.mongoPort}/acmeair`
+        url: `mongodb://${config.mongoHost}:${config.mongoPort}/acmeair`,
+        poolSize
       }
     )
     log.info('fastify-mongo registered')
