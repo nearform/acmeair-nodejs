@@ -8,6 +8,7 @@
   "scripts": {
     "clinic:clean": "clinic clean",
     "start:doctor": "clinic doctor -- node app.js",
+    "start:bubbleprof": "clinic bubbleprof -- node app.js",
     "start": "node app.js",
     "lint": "standard"
   },
@@ -24,13 +25,14 @@
     "fastify-plugin": "^1.0.0",
     "fastify-static": "^0.4.1",
     "fastify-swagger": "^0.1.1",
+    "lru": "^3.1.0",
     "nano": "^6.4.4",
     "under-pressure": "^0.1.0",
     "uuid": "^3.2.1"
   },
   "devDependencies": {
+    "@nearform/clinic": "^0.8.2",
     "autocannon": "^2.4.1",
-    "clinic": "^0.8.1",
     "standard": "^11.0.1"
   },
   "standard": {
