@@ -6,32 +6,41 @@ const { find, names } = require('../db')
 
 const show = async (options, context) => {
   const origin = (context.fromAirport) ? context.fromAirport : undefined
+  const destination = (context.toAirport) ? context.toAirport : undefined
   const outbound = parse(context.fromDate)
-  // const destination = (context.toAirport) ? context.toAirport : undefined
   // const inbound = (isEqual(context.fromDate, context.toDate)) ? undefined : context.toDate
 
-  let originAirportCodes = []
-  // if we have an origin, apply it to our query
-  if (origin) {
-    originAirportCodes.push(origin)
+  let flightSegmentQuery
+  // if we have an origin, no outbound, lookup by originPort
+  // if we have an origin and destination, lookup by originPort destPort
+  // if we do not have an origin or destination, lookup all originPorts
+  if (origin && !destination) {
+    flightSegmentQuery = {originPort: origin}
+  } else if (origin && destination) {
+    flightSegmentQuery = {originPort: origin, destPort: destination}
   } else {
-    // pull all airport codes that our flights originates from
     const originAirports = await find(options, {collectionName: names.airport, query: {originPort: true}})
-    originAirportCodes = originAirports.data.map((airport) => airport._id)
+    const originAirportCodes = originAirports.data.map((airport) => airport._id)
+
+    flightSegmentQuery = {originPort: {'$in': originAirportCodes}}
   }
 
-  const originFlightSegments = await find(options, {collectionName: names.flightSegment, query: {originPort: {'$in': originAirportCodes}}})
-  const originFlightSegmentIds = originFlightSegments.data.map((segment) => segment._id)
-  const query = {flightSegmentId: {'$in': originFlightSegmentIds}}
+  const originFlightSegments = await find(options, {collectionName: names.flightSegment, query: flightSegmentQuery})
+  let flightQuery
+
+  if (origin && destination) {
+    const flightSegmentId = originFlightSegments.data.pop()._id
+    flightQuery = {flightSegmentId}
+  } else {
+    const originFlightSegmentIds = originFlightSegments.data.map((segment) => segment._id)
+    flightQuery = {flightSegmentId: {'$in': originFlightSegmentIds}}
+  }
 
   if (outbound) {
-    query.scheduledDepartureTime = {
-      $gte: new Date(outbound)
-    }
+    flightQuery.scheduledDepartureTime = new Date(outbound)
   }
-  // TODO:accomodate return dates in query?
-  const results = await find(options, {collectionName: names.flight, query})
 
+  const results = await find(options, {collectionName: names.flight, query: flightQuery})
   return results
 }
 

@@ -12,11 +12,11 @@ const instance = autocannon({
   body: postData,
   headers: {
     'Content-Type': 'application/x-www-form-urlencoded',
-    'Cookie': 'sessionid=0bdaf762-2eed-4adc-ad75-674565f74bb5; loggedinuser=uid0%40email.com'
+    'Cookie': 'sessionid=b0c277a0-f097-4074-b963-ef5819e5f8a3; loggedinuser=uid0%40email.com'
   },
   connections: 10,
   pipelining: 1,
-  duration: 10
+  duration: 30
 }, console.log)
 
 process.once('SIGINT', () => {

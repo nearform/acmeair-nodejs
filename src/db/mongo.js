@@ -45,6 +45,20 @@ const update = async (dbClient, collectionName, query, doc) => {
   return {success, data: doc}
 }
 
+const createIndex = async (dbClient, context) => {
+  const collection = dbClient.db.collection(context.collectionName)
+  await collection.createIndex(context.fields, context.options)
+  return 'done'
+}
+
+const createIndices = async (dbClient, context) => {
+  context.forEach(async (item) => {
+    await createIndex(dbClient, item)
+  })
+
+  return 'done'
+}
+
 module.exports = {
   count,
   deleteOne,
@@ -52,5 +66,6 @@ module.exports = {
   find,
   insertOne,
   insertMany,
-  update
+  update,
+  createIndices
 }

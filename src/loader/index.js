@@ -17,7 +17,8 @@ const {
   createCollection,
   find,
   insertMany,
-  names
+  names,
+  createIndices
 } = require('../db')
 
 const loadCustomers = async (options, count) => {
@@ -111,11 +112,43 @@ const createEmptyCollection = async (options, collectionName) => {
   return 'done'
 }
 
+// https://docs.mongodb.com/manual/reference/method/db.collection.createIndex/#db.collection.createIndex
+const createIndicesForBenchmark = async (options) => {
+  const indicies = [
+    {
+      collectionName: names.flight,
+      fields: {
+        flightSegmentId: 1,
+        scheduledDepartureTime: 2
+      },
+      options: {
+        name: 'flight_segment_departureTime',
+        background: true
+      }
+    },
+    {
+      collectionName: names.flightSegment,
+      fields: {
+        originPort: 1,
+        destPort: 2
+      },
+      options: {
+        name: 'flightSegment_origin_dest',
+        background: true
+      }
+    }
+  ]
+
+  await createIndices(options, indicies)
+  return 'done'
+}
+
 const load = async (options, count) => {
   await loadCustomers(options, count)
   await loadAirportCodes(options)
   await loadFlightSegments(options)
   await loadFlights(options)
+  await createIndicesForBenchmark(options)
   await createEmptyCollection(options, names.booking)
   await createEmptyCollection(options, names.session)
 
