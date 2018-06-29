@@ -2,9 +2,7 @@
 require('dotenv').config()
 
 const path = require('path')
-const lru = require('lru')
 const fastify = require('fastify')({ logger: true })
-const cache = lru({max: 10, maxAge: 5000})
 
 const _port = (process.env.PORT) ? process.env.PORT : 9080
 const _host = (process.env.HOST) ? process.env.HOST : 'localhost'
@@ -15,11 +13,11 @@ fastify
     maxHeapUsedBytes: 100000000,
     maxRssBytes: 100000000
   })
-  .register(require('fastify-caching'), {cache})
   .register(require('fastify-cookie'))
   .register(require('fastify-formbody'))
   .register(require('./src/plugins/determine-env'))
   .register(require('./src/plugins/configure-db'))
+  .register(require('./src/plugins/configure-cache'))
   .register(require('./src/routes/loader'))
   .register(require('./src/routes/config'))
   .register(require('./src/routes/auth'))

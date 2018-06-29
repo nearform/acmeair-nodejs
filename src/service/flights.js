@@ -28,16 +28,15 @@ const show = async (options, context) => {
     flightSegmentQuery = {originPort: {'$in': originAirportCodes}}
   }
 
-  if (cache.get(segmentsCacheKey)) {
+  if (cache && cache.get(segmentsCacheKey)) {
     originFlightSegments = [].concat(cache.get(segmentsCacheKey))
   } else {
     originFlightSegments = await find(options, {collectionName: names.flightSegment, query: flightSegmentQuery})
-    cache.set(segmentsCacheKey, [].concat(originFlightSegments.data))
+    cache && cache.set(segmentsCacheKey, [].concat(originFlightSegments.data))
   }
 
   if (origin && destination) {
     const flightSegment = (originFlightSegments.data) ? originFlightSegments.data.pop() : originFlightSegments.pop()
-    
     flightQuery = {flightSegmentId: flightSegment._id}
   } else {
     const originFlightSegmentIds = originFlightSegments.data.map((segment) => segment._id)
@@ -50,11 +49,11 @@ const show = async (options, context) => {
     }
   }
 
-  if (cache.get(flightsCacheKey)) {
+  if (cache && cache.get(flightsCacheKey)) {
     results = cache.get(flightsCacheKey)
   } else {
     results = await find(options, {collectionName: names.flight, query: flightQuery})
-    cache.set(flightsCacheKey, results)
+    cache && cache.set(flightsCacheKey, results)
   }
 
   return results

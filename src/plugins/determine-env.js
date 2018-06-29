@@ -12,7 +12,8 @@ function setFastifyConfig (fastify, options, next) {
     CLOUDANT_URL,
     MONGO_HOST,
     MONGO_PORT,
-    MONGO_POOLSIZE
+    MONGO_POOLSIZE,
+    USE_CACHE
   } = process.env
 
   fastify.register(require('fastify-env'), {
@@ -21,6 +22,7 @@ function setFastifyConfig (fastify, options, next) {
       required: [ 'dbType' ],
       dotenv: true,
       properties: {
+        useCache: { type: 'boolean', default: USE_CACHE || false },
         dbType: { type: 'string', default: DBTYPE },
         mongoHost: {
           type: 'string',

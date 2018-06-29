@@ -1,6 +1,6 @@
 {
   "name": "acmeair",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "private": true,
   "engines": {
     "node": ">=8.11.3"
@@ -32,8 +32,8 @@
     "uuid": "^3.2.1"
   },
   "devDependencies": {
-    "@nearform/clinic": "^0.8.2",
     "autocannon": "^2.4.1",
+    "clinic": "^0.8.2",
     "standard": "^11.0.1"
   },
   "standard": {
