@@ -5,12 +5,15 @@ const parse = require('date-fns/parse')
 const { find, names } = require('../db')
 
 const show = async (options, context) => {
+  let originFlightSegments, flightSegmentQuery, flightQuery, results
+  const {cache} = options
   const origin = (context.fromAirport) ? context.fromAirport : undefined
   const destination = (context.toAirport) ? context.toAirport : undefined
   const outbound = parse(context.fromDate)
+  const segmentsCacheKey = `segments-${origin}-${destination}`
+  const flightsCacheKey = `flights-${origin}-${destination}`
   // const inbound = (isEqual(context.fromDate, context.toDate)) ? undefined : context.toDate
 
-  let flightSegmentQuery
   // if we have an origin, no outbound, lookup by originPort
   // if we have an origin and destination, lookup by originPort destPort
   // if we do not have an origin or destination, lookup all originPorts
@@ -25,22 +28,34 @@ const show = async (options, context) => {
     flightSegmentQuery = {originPort: {'$in': originAirportCodes}}
   }
 
-  const originFlightSegments = await find(options, {collectionName: names.flightSegment, query: flightSegmentQuery})
-  let flightQuery
+  if (cache && cache.get(segmentsCacheKey)) {
+    originFlightSegments = [].concat(cache.get(segmentsCacheKey))
+  } else {
+    originFlightSegments = await find(options, {collectionName: names.flightSegment, query: flightSegmentQuery})
+    cache && cache.set(segmentsCacheKey, [].concat(originFlightSegments.data))
+  }
 
   if (origin && destination) {
-    const flightSegmentId = originFlightSegments.data.pop()._id
-    flightQuery = {flightSegmentId}
+    const flightSegment = (originFlightSegments.data) ? originFlightSegments.data.pop() : originFlightSegments.pop()
+    flightQuery = {flightSegmentId: flightSegment._id}
   } else {
     const originFlightSegmentIds = originFlightSegments.data.map((segment) => segment._id)
     flightQuery = {flightSegmentId: {'$in': originFlightSegmentIds}}
   }
 
   if (outbound) {
-    flightQuery.scheduledDepartureTime = new Date(outbound)
+    flightQuery.scheduledDepartureTime = {
+      $gte: new Date(outbound)
+    }
   }
 
-  const results = await find(options, {collectionName: names.flight, query: flightQuery})
+  if (cache && cache.get(flightsCacheKey)) {
+    results = cache.get(flightsCacheKey)
+  } else {
+    results = await find(options, {collectionName: names.flight, query: flightQuery})
+    cache && cache.set(flightsCacheKey, results)
+  }
+
   return results
 }
 

@@ -12,7 +12,7 @@ const instance = autocannon({
   body: postData,
   headers: {
     'Content-Type': 'application/x-www-form-urlencoded',
-    'Cookie': 'sessionid=b0c277a0-f097-4074-b963-ef5819e5f8a3; loggedinuser=uid0%40email.com'
+    'Cookie': 'sessionid=ec9a7f57-bc75-4baa-9fa7-0014bfaa0b49; loggedinuser=uid0%40email.com'
   },
   connections: 10,
   pipelining: 1,

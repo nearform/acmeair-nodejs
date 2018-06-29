@@ -3,6 +3,7 @@ require('dotenv').config()
 
 const path = require('path')
 const fastify = require('fastify')({ logger: true })
+
 const _port = (process.env.PORT) ? process.env.PORT : 9080
 const _host = (process.env.HOST) ? process.env.HOST : 'localhost'
 
@@ -16,6 +17,7 @@ fastify
   .register(require('fastify-formbody'))
   .register(require('./src/plugins/determine-env'))
   .register(require('./src/plugins/configure-db'))
+  .register(require('./src/plugins/configure-cache'))
   .register(require('./src/routes/loader'))
   .register(require('./src/routes/config'))
   .register(require('./src/routes/auth'))
